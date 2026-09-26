@@ -1,5 +1,5 @@
 {
-  "name": "cyber-chef-mcp",
+  "name": "@noorfatima123456/cyber-chef-mcp",
   "version": "1.0.0",
   "description": "Model Context Protocol (MCP) Server for CyberChef — 500+ data transformations, crypto, and payload deobfuscation for AI Agents (Claude, Cursor, Windsurf, Strix, Hisaar).",
   "main": "server.js",
