@@ -1,10 +1,10 @@
 # 🍳 CyberChef MCP Server
 > **Turn your AI Agents into Master Reverse Engineers & Cryptographers.**  
-> Built as part of **Project Hisaar (حصار)** for the Punjab Provincial Hackathon 2026.
 
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
 [![MCP Version](https://img.shields.io/badge/MCP-1.30+-green.svg)](https://modelcontextprotocol.io)
 [![Node.js](https://img.shields.io/badge/Node.js-18+-orange.svg)](https://nodejs.org)
+[![npm](https://img.shields.io/npm/v/@noorfatima123456/cyber-chef-mcp.svg)](https://www.npmjs.com/package/@noorfatima123456/cyber-chef-mcp)
 
 The **CyberChef Model Context Protocol (MCP)** server exposes the power of [CyberChef (The Cyber Swiss Army Knife)](https://github.com/gchq/CyberChef) directly to autonomous coding and security agents, including **Claude Desktop**, **Cursor IDE**, **Windsurf**, and **Strix Pentesting Framework**.
 
@@ -27,17 +27,17 @@ Agents can dynamically bake complex multi-stage recipe pipelines (Hex -> XOR -> 
 
 ## 📦 Installation & Quickstart
 
-### Option A: Direct Node Execution
+### Option A: Run via NPX (Recommended)
 ```bash
-git clone https://github.com/hisaar-sec/cyberchef-mcp.git
-cd cyberchef-mcp
-npm install
-npm start
+npx @noorfatima123456/cyber-chef-mcp
 ```
 
-### Option B: Run via NPX
+### Option B: Clone & Run Locally
 ```bash
-npx cyberchef-mcp
+git clone https://github.com/noor202401938-netizen/cyber-chef-mcp.git
+cd cyber-chef-mcp
+npm install
+npm start
 ```
 
 ---
@@ -53,8 +53,8 @@ Add to your `claude_desktop_config.json`:
 {
   "mcpServers": {
     "cyberchef": {
-      "command": "node",
-      "args": ["D:/strix-cyberchef/hisaar/cyberchef-mcp/server.js"]
+      "command": "npx",
+      "args": ["-y", "@noorfatima123456/cyber-chef-mcp"]
     }
   }
 }
@@ -64,7 +64,7 @@ Add to your `claude_desktop_config.json`:
 In Cursor **Settings > Features > MCP**:
 - Name: `cyberchef`
 - Type: `command`
-- Command: `node D:/strix-cyberchef/hisaar/cyberchef-mcp/server.js`
+- Command: `npx -y @noorfatima123456/cyber-chef-mcp`
 
 ### 3. Windsurf Cascade
 Add to `~/.codeium/windsurf/mcp_config.json`:
@@ -72,8 +72,8 @@ Add to `~/.codeium/windsurf/mcp_config.json`:
 {
   "mcpServers": {
     "cyberchef": {
-      "command": "node",
-      "args": ["D:/strix-cyberchef/hisaar/cyberchef-mcp/server.js"]
+      "command": "npx",
+      "args": ["-y", "@noorfatima123456/cyber-chef-mcp"]
     }
   }
 }
@@ -87,7 +87,7 @@ Add to `~/.strix/mcp-servers.json` (or pass via `--mcp-config`):
     "name": "cyberchef",
     "transport": "stdio",
     "command": "npx",
-    "args": ["-y", "cyberchef-mcp"],
+    "args": ["-y", "@noorfatima123456/cyber-chef-mcp"],
     "notes": "CyberChef MCP server for multi-layer payload deobfuscation, crypto decoding, and entropy analysis."
   }
 ]
