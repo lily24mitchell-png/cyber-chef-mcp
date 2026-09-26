@@ -13,9 +13,11 @@ pinned: false
 
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
 [![MCP Version](https://img.shields.io/badge/MCP-1.30+-green.svg)](https://modelcontextprotocol.io)
-[![Node.js](https://img.shields.io/badge/Node.js-18+-orange.svg)](https://nodejs.org)
-[![npm](https://img.shields.io/npm/v/@noorfatima123456/cyber-chef-mcp.svg)](https://www.npmjs.com/package/@noorfatima123456/cyber-chef-mcp)
-[![noor202401938-netizen/cyber-chef-mcp MCP server](https://glama.ai/mcp/servers/noor202401938-netizen/cyber-chef-mcp/badges/score.svg)](https://glama.ai/mcp/servers/noor202401938-netizen/cyber-chef-mcp)
+[![npm version](https://img.shields.io/npm/v/@noorfatima123456/cyber-chef-mcp.svg)](https://www.npmjs.com/package/@noorfatima123456/cyber-chef-mcp)
+[![CI Tests](https://github.com/noor202401938-netizen/cyber-chef-mcp/actions/workflows/ci.yml/badge.svg)](https://github.com/noor202401938-netizen/cyber-chef-mcp/actions)
+[![Azure Deployed](https://img.shields.io/badge/Azure-Live%20SSE-0078D4?logo=microsoftazure&logoColor=white)](https://cyber-chef-mcp-ehcdg4a5ebehgvc2.eastasia-01.azurewebsites.net)
+[![Smithery](https://smithery.ai/badge/@noor-202401938/cyber-chef-mcp)](https://smithery.ai/server/@noor-202401938/cyber-chef-mcp)
+[![Glama Score](https://glama.ai/mcp/servers/noor202401938-netizen/cyber-chef-mcp/badges/score.svg)](https://glama.ai/mcp/servers/noor202401938-netizen/cyber-chef-mcp)
 
 The **CyberChef Model Context Protocol (MCP)** server exposes the power of [CyberChef (The Cyber Swiss Army Knife)](https://github.com/gchq/CyberChef) directly to autonomous coding and security agents, including **Claude Desktop**, **Cursor IDE**, **Windsurf**, and **Strix Pentesting Framework**.
 
@@ -28,22 +30,41 @@ Agents can dynamically bake complex multi-stage recipe pipelines (Hex -> XOR -> 
 - **⚡ Native Recipe Execution (`cyberchef_bake`)**: Chain any sequence of operations with arbitrary parameters.
 - **🪄 Magic Mode (`cyberchef_magic`)**: Automatically detect and deobfuscate unknown payloads without prior knowledge of the encoding scheme.
 - **🛡️ Specialized Cybersecurity Primitives**:
-  - `jwt_decode`: Parse header, claims, and signature with Unix expiry conversions.
-  - `entropy_calc`: Measure Shannon entropy to detect packed, obfuscated, or encrypted blobs (threshold > 7.2).
-  - `defang_url`: Sanitize malicious URLs and IPs (`hxxps[://]`, `192[.]168[.]1[.]1`) before safe display.
-  - `from_base64` / `to_base64`, `from_hex` / `to_hex`, `url_decode` / `url_encode`.
+  - `cyberchef_jwt_decode`: Parse header, claims, and signature with Unix expiry conversions.
+  - `cyberchef_entropy`: Measure Shannon entropy to detect packed, obfuscated, or encrypted blobs.
+  - `cyberchef_defang_url`: Sanitize malicious URLs and IPs (`hxxps[://]`, `192[.]168[.]1[.]1`) before safe display.
+  - `cyberchef_extract_entities`: Forensic extraction of URLs, emails, and IPv4 addresses from logs.
+  - `cyberchef_xor` / `cyberchef_rot13`: Bitwise encryption and Caesar rotation ciphers.
+  - `cyberchef_from_base64` / `cyberchef_to_base64`, `cyberchef_from_hex` / `cyberchef_to_hex`, `cyberchef_url_decode` / `cyberchef_url_encode`.
 - **📚 Interactive Catalog (`cyberchef_help`)**: Allows agents to introspect available operations and parameter schemas dynamically on demand.
 
 ---
 
 ## 📦 Installation & Quickstart
 
-### Option A: Run via NPX (Recommended)
+### Option A: Install via Smithery (Recommended)
+```bash
+npx -y @smithery/cli install @noor-202401938/cyber-chef-mcp --client claude
+```
+
+### Option B: Zero-Install Remote SSE (Hosted on Microsoft Azure)
+Connect directly to the cloud without installing anything locally:
+```json
+{
+  "mcpServers": {
+    "cyberchef": {
+      "url": "https://cyber-chef-mcp-ehcdg4a5ebehgvc2.eastasia-01.azurewebsites.net/sse"
+    }
+  }
+}
+```
+
+### Option C: Run via NPX (Local Stdio)
 ```bash
 npx @noorfatima123456/cyber-chef-mcp
 ```
 
-### Option B: Clone & Run Locally
+### Option D: Clone & Run Locally
 ```bash
 git clone https://github.com/noor202401938-netizen/cyber-chef-mcp.git
 cd cyber-chef-mcp
