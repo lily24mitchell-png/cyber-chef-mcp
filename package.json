@@ -1,0 +1,34 @@
+{
+  "name": "cyberchef-mcp",
+  "version": "1.0.0",
+  "description": "Model Context Protocol (MCP) Server for CyberChef \u2014 500+ data transformations, crypto, and payload deobfuscation for AI Agents (Claude, Cursor, Windsurf, Strix, Hisaar).",
+  "main": "server.js",
+  "bin": {
+    "cyberchef-mcp": "./bin/cyberchef-mcp.js"
+  },
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "test": "node test.js"
+  },
+  "keywords": [
+    "mcp",
+    "cyberchef",
+    "modelcontextprotocol",
+    "cybersecurity",
+    "agentic-ai",
+    "strix",
+    "hisaar",
+    "pentesting",
+    "deobfuscation"
+  ],
+  "author": "Hisaar Team",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.30.1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/noor202401938-netizen/cyber-chef-mcp.git"
+  }
+}
