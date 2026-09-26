@@ -1,0 +1,9 @@
+# Smithery configuration file
+# https://smithery.ai/docs/config
+
+startCommand:
+  type: stdio
+  config:
+    command: node
+    args:
+      - server.js
