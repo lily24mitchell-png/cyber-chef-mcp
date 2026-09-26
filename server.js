@@ -2,6 +2,7 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { SSEServerTransport } from "@modelcontextprotocol/sdk/server/sse.js";
 import http from "node:http";
+import { readFileSync } from "node:fs";
 import { z } from "zod";
 import { CyberChefEngine } from "./utils/cyberchef-runner.js";
 import { BuiltinChef } from "./utils/builtin-chef.js";
@@ -370,7 +371,19 @@ async function main() {
 
     if (req.method === "GET" && url.pathname === "/health") {
       res.writeHead(200, { "Content-Type": "application/json" });
-      res.end(JSON.stringify({ status: "healthy", name: "cyberchef-mcp", version: "1.0.1" }));
+      res.end(JSON.stringify({ status: "healthy", name: "cyberchef-mcp", version: "1.0.2" }));
+      return;
+    }
+
+    if (req.method === "GET" && (url.pathname === "/.well-known/mcp/server-card.json" || url.pathname === "/server-card.json")) {
+      try {
+        const cardData = readFileSync(new URL("./.well-known/mcp/server-card.json", import.meta.url), "utf-8");
+        res.writeHead(200, { "Content-Type": "application/json" });
+        res.end(cardData);
+      } catch (err) {
+        res.writeHead(500, { "Content-Type": "application/json" });
+        res.end(JSON.stringify({ error: err.message }));
+      }
       return;
     }
 
