@@ -1,3 +1,13 @@
+---
+title: CyberChef MCP Server
+emoji: 🍳
+colorFrom: blue
+colorTo: indigo
+sdk: docker
+app_port: 7860
+pinned: false
+---
+
 # 🍳 CyberChef MCP Server
 > **Turn your AI Agents into Master Reverse Engineers & Cryptographers.**  
 
@@ -5,6 +15,7 @@
 [![MCP Version](https://img.shields.io/badge/MCP-1.30+-green.svg)](https://modelcontextprotocol.io)
 [![Node.js](https://img.shields.io/badge/Node.js-18+-orange.svg)](https://nodejs.org)
 [![npm](https://img.shields.io/npm/v/@noorfatima123456/cyber-chef-mcp.svg)](https://www.npmjs.com/package/@noorfatima123456/cyber-chef-mcp)
+[![noor202401938-netizen/cyber-chef-mcp MCP server](https://glama.ai/mcp/servers/noor202401938-netizen/cyber-chef-mcp/badges/score.svg)](https://glama.ai/mcp/servers/noor202401938-netizen/cyber-chef-mcp)
 
 The **CyberChef Model Context Protocol (MCP)** server exposes the power of [CyberChef (The Cyber Swiss Army Knife)](https://github.com/gchq/CyberChef) directly to autonomous coding and security agents, including **Claude Desktop**, **Cursor IDE**, **Windsurf**, and **Strix Pentesting Framework**.
 

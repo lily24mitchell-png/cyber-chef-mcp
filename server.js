@@ -1,5 +1,7 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
+import { SSEServerTransport } from "@modelcontextprotocol/sdk/server/sse.js";
+import http from "node:http";
 import { z } from "zod";
 import { CyberChefEngine } from "./utils/cyberchef-runner.js";
 import { BuiltinChef } from "./utils/builtin-chef.js";
@@ -260,11 +262,128 @@ server.tool(
   }
 );
 
-// Connect via STDIO transport for MCP clients (Strix, Claude, Antigravity)
+// Dual Transport: STDIO (local CLI / Claude / Cursor / Strix) & HTTP/SSE (Hugging Face / Cloud)
 async function main() {
-  const transport = new StdioServerTransport();
-  await server.connect(transport);
-  console.error("CyberChef MCP Server running on stdio transport.");
+  const portArgIdx = process.argv.indexOf("--port");
+  const portFromArg = portArgIdx !== -1 ? process.argv[portArgIdx + 1] : null;
+  const isHttp = Boolean(
+    (process.env.PORT || portFromArg || process.argv.includes("--http") || process.argv.includes("--sse")) &&
+    !process.argv.includes("--stdio")
+  );
+
+  if (!isHttp) {
+    const transport = new StdioServerTransport();
+    await server.connect(transport);
+    console.error("CyberChef MCP Server running on stdio transport.");
+    return;
+  }
+
+  const port = parseInt(portFromArg || process.env.PORT || "7860", 10);
+  let sseTransport = null;
+
+  const httpServer = http.createServer(async (req, res) => {
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+    res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+
+    if (req.method === "OPTIONS") {
+      res.writeHead(204);
+      res.end();
+      return;
+    }
+
+    const host = req.headers.host || `localhost:${port}`;
+    const url = new URL(req.url, `http://${host}`);
+
+    if (req.method === "GET" && url.pathname === "/") {
+      res.writeHead(200, { "Content-Type": "text/html; charset=utf-8" });
+      res.end(`<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>CyberChef MCP Server</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #0b0f19; color: #f3f4f6; margin: 0; padding: 40px 20px; }
+    .container { max-width: 800px; margin: 0 auto; background: #131c2e; border: 1px solid #1f2d47; border-radius: 12px; padding: 32px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
+    h1 { color: #60a5fa; margin-top: 0; display: flex; align-items: center; gap: 10px; }
+    .badge { display: inline-block; background: #10b981; color: white; padding: 4px 10px; border-radius: 20px; font-size: 13px; font-weight: bold; margin-bottom: 20px; }
+    p { line-height: 1.6; color: #9ca3af; }
+    code, pre { background: #070c14; border: 1px solid #1e293b; border-radius: 6px; padding: 3px 6px; color: #38bdf8; font-family: Consolas, Monaco, monospace; }
+    pre { padding: 16px; overflow-x: auto; color: #e2e8f0; }
+    .endpoint { background: #1e293b; padding: 12px; border-radius: 8px; font-weight: 600; color: #a5f3fc; margin: 20px 0; }
+    ul { list-style: none; padding-left: 0; }
+    li { padding: 6px 0; border-bottom: 1px solid #1e293b; color: #cbd5e1; }
+    li span { color: #f472b6; font-family: monospace; font-weight: 600; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🍳 CyberChef MCP Server</h1>
+    <div class="badge">● Online & Ready</div>
+    <p>Model Context Protocol (MCP) server providing 500+ data transformations, ciphers, hashing, JWT inspection, Shannon entropy analysis, and multi-stage payload deobfuscation for AI security agents.</p>
+    
+    <div class="endpoint">
+      SSE Endpoint: <code>/sse</code> | Message Endpoint: <code>/message</code>
+    </div>
+
+    <h3>Connect via Claude Desktop / Cursor / Windsurf / Strix:</h3>
+    <pre>{
+  "mcpServers": {
+    "cyberchef": {
+      "url": "https://${host}/sse"
+    }
+  }
+}</pre>
+
+    <h3>Available Tools (15):</h3>
+    <ul>
+      <li><span>cyberchef_magic</span> — Heuristic payload detection & recipe recommendation</li>
+      <li><span>cyberchef_bake</span> — Multi-stage sequential transformation pipeline</li>
+      <li><span>cyberchef_jwt_decode</span> — Inspect header, claims, and signature of JWTs</li>
+      <li><span>cyberchef_entropy</span> — Shannon entropy calculation for packed/encrypted strings</li>
+      <li><span>cyberchef_from_base64</span> / <span>cyberchef_to_base64</span> — Standard and URL-safe Base64</li>
+      <li><span>cyberchef_from_hex</span> / <span>cyberchef_to_hex</span> — Hexadecimal encoding & decoding</li>
+      <li><span>cyberchef_url_decode</span> / <span>cyberchef_url_encode</span> — Percent-encoding operations</li>
+      <li><span>cyberchef_rot13</span> / <span>cyberchef_xor</span> — Ciphers & key decryption</li>
+      <li><span>cyberchef_defang_url</span> — Malicious URL sanitization</li>
+      <li><span>cyberchef_extract_entities</span> — Regex forensic entity extraction</li>
+    </ul>
+  </div>
+</body>
+</html>`);
+      return;
+    }
+
+    if (req.method === "GET" && url.pathname === "/health") {
+      res.writeHead(200, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ status: "healthy", name: "cyberchef-mcp", version: "1.0.1" }));
+      return;
+    }
+
+    if (req.method === "GET" && url.pathname === "/sse") {
+      sseTransport = new SSEServerTransport("/message", res);
+      await server.connect(sseTransport);
+      return;
+    }
+
+    if (req.method === "POST" && url.pathname === "/message") {
+      if (sseTransport) {
+        await sseTransport.handlePostMessage(req, res);
+      } else {
+        res.writeHead(400, { "Content-Type": "application/json" });
+        res.end(JSON.stringify({ error: "SSE session not established yet" }));
+      }
+      return;
+    }
+
+    res.writeHead(404);
+    res.end("Not Found");
+  });
+
+  httpServer.listen(port, "0.0.0.0", () => {
+    console.error(`CyberChef MCP Server running over HTTP/SSE on http://0.0.0.0:${port}`);
+    console.error(`SSE endpoint: http://0.0.0.0:${port}/sse`);
+  });
 }
 
 main().catch((err) => {
