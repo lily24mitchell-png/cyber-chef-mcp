@@ -6,6 +6,7 @@ import { readFileSync } from "node:fs";
 import { z } from "zod";
 import { CyberChefEngine } from "./utils/cyberchef-runner.js";
 import { BuiltinChef } from "./utils/builtin-chef.js";
+import { SERVER_CARD } from "./utils/server-card-data.js";
 
 // Initialize CyberChef MCP Server
 const server = new McpServer({
@@ -376,14 +377,8 @@ async function main() {
     }
 
     if (req.method === "GET" && (url.pathname === "/.well-known/mcp/server-card.json" || url.pathname === "/server-card.json")) {
-      try {
-        const cardData = readFileSync(new URL("./.well-known/mcp/server-card.json", import.meta.url), "utf-8");
-        res.writeHead(200, { "Content-Type": "application/json" });
-        res.end(cardData);
-      } catch (err) {
-        res.writeHead(500, { "Content-Type": "application/json" });
-        res.end(JSON.stringify({ error: err.message }));
-      }
+      res.writeHead(200, { "Content-Type": "application/json" });
+      res.end(JSON.stringify(SERVER_CARD, null, 2));
       return;
     }
 

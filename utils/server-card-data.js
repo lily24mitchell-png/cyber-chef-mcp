@@ -1,0 +1,228 @@
+export const SERVER_CARD = {
+  "serverInfo": {
+    "name": "cyberchef-mcp",
+    "version": "1.0.2"
+  },
+  "authentication": {
+    "required": false
+  },
+  "tools": [
+    {
+      "name": "cyberchef_bake",
+      "description": "Executes a multi-stage sequential data transformation pipeline ('recipe') on the input string, chaining multiple operations such as Base64, Hex, URL decoding, XOR, ROT13, and hashing in a single turn.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "input": {
+            "type": "string",
+            "description": "The raw, encoded, or obfuscated input string to process"
+          },
+          "recipe": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "op": { "type": "string" },
+                "args": { "type": "array" }
+              },
+              "required": ["op"]
+            },
+            "description": "Ordered array of recipe steps to execute in sequence"
+          }
+        },
+        "required": ["input", "recipe"]
+      }
+    },
+    {
+      "name": "cyberchef_magic",
+      "description": "Performs heuristic forensic analysis on suspicious, unknown, or obfuscated strings to detect encoding formats, hash signatures, ciphers, and compression with confidence scores.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "input": {
+            "type": "string",
+            "description": "The unknown or obfuscated string to inspect"
+          }
+        },
+        "required": ["input"]
+      }
+    },
+    {
+      "name": "cyberchef_help",
+      "description": "Searches the built-in CyberChef operations catalog to find available tools, supported recipe names, and operation capabilities by keyword or category.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "query": {
+            "type": "string",
+            "description": "Optional search term to filter operations"
+          }
+        }
+      }
+    },
+    {
+      "name": "cyberchef_from_base64",
+      "description": "Decodes standard RFC 4648 or URL-safe Base64 encoded strings into readable UTF-8 plaintext.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "input": { "type": "string", "description": "Base64 string to decode" },
+          "urlSafe": { "type": "boolean", "description": "Set true if URL-safe Base64" }
+        },
+        "required": ["input"]
+      }
+    },
+    {
+      "name": "cyberchef_to_base64",
+      "description": "Encodes arbitrary text or byte data into standard RFC 4648 or URL-safe Base64 string representation.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "input": { "type": "string", "description": "Plaintext string to encode" },
+          "urlSafe": { "type": "boolean", "description": "Produce URL-safe Base64" }
+        },
+        "required": ["input"]
+      }
+    },
+    {
+      "name": "cyberchef_from_hex",
+      "description": "Converts a hexadecimal byte string back into UTF-8 text or raw character data.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "input": { "type": "string", "description": "Hexadecimal string to decode" },
+          "delimiter": { "type": "string", "enum": ["None", "Space", "0x", "Comma"] }
+        },
+        "required": ["input"]
+      }
+    },
+    {
+      "name": "cyberchef_to_hex",
+      "description": "Converts UTF-8 text or character data into its hexadecimal byte representation.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "input": { "type": "string", "description": "Plaintext string to convert into hex" },
+          "delimiter": { "type": "string", "enum": ["None", "Space", "0x", "Comma"] }
+        },
+        "required": ["input"]
+      }
+    },
+    {
+      "name": "cyberchef_url_decode",
+      "description": "Decodes percent-encoded URL query strings and path segments into standard UTF-8 characters.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "input": { "type": "string", "description": "Percent-encoded URL string to decode" }
+        },
+        "required": ["input"]
+      }
+    },
+    {
+      "name": "cyberchef_url_encode",
+      "description": "Encodes reserved and unsafe characters in a string into standard percent-encoded format (%XX).",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "input": { "type": "string", "description": "Plaintext string to URL encode" },
+          "encodeAll": { "type": "boolean", "description": "Encode all characters including alphanumerics" }
+        },
+        "required": ["input"]
+      }
+    },
+    {
+      "name": "cyberchef_rot13",
+      "description": "Applies the ROT13 substitution cipher or an arbitrary Caesar cipher shift to alphabetic characters.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "input": { "type": "string", "description": "Text to rotate" },
+          "amount": { "type": "number", "description": "Offset count (default 13)" }
+        },
+        "required": ["input"]
+      }
+    },
+    {
+      "name": "cyberchef_xor",
+      "description": "Applies a bitwise XOR cipher using a repeating key against the input string.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "input": { "type": "string", "description": "Ciphertext or plaintext" },
+          "key": { "type": "string", "description": "Secret key for XOR" },
+          "keyFormat": { "type": "string", "enum": ["UTF8", "Hex"] }
+        },
+        "required": ["input", "key"]
+      }
+    },
+    {
+      "name": "cyberchef_analyse_hash",
+      "description": "Identifies probable cryptographic hash algorithms for a given digest.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "hash": { "type": "string", "description": "Hash digest string to identify" }
+        },
+        "required": ["hash"]
+      }
+    },
+    {
+      "name": "cyberchef_sha256",
+      "description": "Calculates the cryptographic SHA-256 digest of the input string.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "input": { "type": "string", "description": "Data to hash" }
+        },
+        "required": ["input"]
+      }
+    },
+    {
+      "name": "cyberchef_entropy",
+      "description": "Calculates representation-calibrated Shannon entropy to determine randomness, encryption, or packing.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "input": { "type": "string", "description": "Data string to analyze" }
+        },
+        "required": ["input"]
+      }
+    },
+    {
+      "name": "cyberchef_jwt_decode",
+      "description": "Decodes and inspects JSON Web Tokens without requiring a secret.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "token": { "type": "string", "description": "Full JWT token" }
+        },
+        "required": ["token"]
+      }
+    },
+    {
+      "name": "cyberchef_defang_url",
+      "description": "Sanitizes malicious or suspicious URLs into harmless representations.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "url": { "type": "string", "description": "URL to defang" }
+        },
+        "required": ["url"]
+      }
+    },
+    {
+      "name": "cyberchef_extract_entities",
+      "description": "Extracts URLs, IP addresses, and email addresses from unstructured logs or payloads.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "text": { "type": "string", "description": "Unstructured text to extract entities from" }
+        },
+        "required": ["text"]
+      }
+    }
+  ],
+  "resources": [],
+  "prompts": []
+};
