@@ -9,6 +9,7 @@ import { CyberChefEngine } from "./utils/cyberchef-runner.js";
 import { BuiltinChef } from "./utils/builtin-chef.js";
 import { StrixHelper } from "./utils/strix-helper.js";
 import { Logger } from "./utils/logger.js";
+import { renderLandingPage } from "./utils/landing-page.js";
 import { SERVER_CARD } from "./utils/server-card-data.js";
 
 // Cryptographic constant-time comparison preventing timing attacks
@@ -61,7 +62,7 @@ async function timedTool(toolName, input, fn) {
 // Initialize CyberChef MCP Server
 const server = new McpServer({
   name: "cyberchef-mcp",
-  version: "1.0.6"
+  version: "1.0.7"
 });
 
 // Tool 1: Universal Recipe Runner (Bake)
@@ -430,66 +431,10 @@ async function main() {
       }
     }
 
-    // Public Root Landing Page
+    // Public Root Landing Page (Premium Cyber-Dark Design)
     if (req.method === "GET" && url.pathname === "/") {
       res.writeHead(200, { "Content-Type": "text/html; charset=utf-8" });
-      res.end(`<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <title>CyberChef MCP Server</title>
-  <style>
-    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #0b0f19; color: #f3f4f6; margin: 0; padding: 40px 20px; }
-    .container { max-width: 800px; margin: 0 auto; background: #131c2e; border: 1px solid #1f2d47; border-radius: 12px; padding: 32px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
-    h1 { color: #60a5fa; margin-top: 0; display: flex; align-items: center; gap: 10px; }
-    .badge { display: inline-block; background: #10b981; color: white; padding: 4px 10px; border-radius: 20px; font-size: 13px; font-weight: bold; margin-bottom: 20px; }
-    p { line-height: 1.6; color: #9ca3af; }
-    code, pre { background: #070c14; border: 1px solid #1e293b; border-radius: 6px; padding: 3px 6px; color: #38bdf8; font-family: Consolas, Monaco, monospace; }
-    pre { padding: 16px; overflow-x: auto; color: #e2e8f0; }
-    .endpoint { background: #1e293b; padding: 12px; border-radius: 8px; font-weight: 600; color: #a5f3fc; margin: 20px 0; }
-    ul { list-style: none; padding-left: 0; }
-    li { padding: 6px 0; border-bottom: 1px solid #1e293b; color: #cbd5e1; }
-    li span { color: #f472b6; font-family: monospace; font-weight: 600; }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <h1>🍳 CyberChef MCP Server</h1>
-    <div class="badge">● Online & Ready</div>
-    <p>Model Context Protocol (MCP) server providing 28 core operations, ciphers, hashing, JWT inspection, representation-calibrated Shannon entropy analysis, enterprise DLP scanning, and multi-stage payload deobfuscation for AI security agents.</p>
-    
-    <div class="endpoint">
-      SSE Endpoint: <code>/sse</code> | Message Endpoint: <code>/message</code>
-    </div>
-
-    <h3>Connect via Claude Desktop / Cursor / Windsurf / Strix:</h3>
-    <pre>{
-  "mcpServers": {
-    "cyberchef": {
-      "url": "https://${host}/sse"
-    }
-  }
-}</pre>
-
-    <h3>Available Tools (18):</h3>
-    <ul>
-      <li><span>cyberchef_strix_triage</span> — Automated one-shot security triage (DLP, Entropy, Magic)</li>
-      <li><span>cyberchef_magic</span> — Heuristic payload detection & recipe recommendation</li>
-      <li><span>cyberchef_bake</span> — Multi-stage sequential transformation pipeline (28 ops)</li>
-      <li><span>cyberchef_jwt_decode</span> — Inspect header, claims, and signature of JWTs</li>
-      <li><span>cyberchef_entropy</span> — Representation-calibrated Shannon entropy (Hex max 4.0, Base64 max 6.0, Raw max 8.0)</li>
-      <li><span>cyberchef_extract_entities</span> — Enterprise DLP scanner (Credit Cards with Luhn, SSN, PAN, IBAN, E.164, strict IPv4/IPv6, AWS keys, JWTs)</li>
-      <li><span>cyberchef_defang_url</span> — Scoped sanitization for URLs, IPs, and emails</li>
-      <li><span>cyberchef_from_base64</span> / <span>cyberchef_to_base64</span> — Base64 with structured output { utf8, hex, isPrintable, byteLength }</li>
-      <li><span>cyberchef_from_hex</span> / <span>cyberchef_to_hex</span> — Hex with structured output</li>
-      <li><span>cyberchef_url_decode</span> / <span>cyberchef_url_encode</span> — Percent-encoding operations</li>
-      <li><span>cyberchef_rot13</span> / <span>cyberchef_xor</span> — Ciphers & key decryption</li>
-      <li><span>cyberchef_analyse_hash</span> / <span>cyberchef_sha256</span> — Hash identification (PHC Argon2/scrypt/PBKDF2/bcrypt) & SHA-256</li>
-      <li><span>cyberchef_help</span> — Catalog search across 28 operations</li>
-    </ul>
-  </div>
-</body>
-</html>`);
+      res.end(renderLandingPage(host, port));
       return;
     }
 
@@ -548,7 +493,7 @@ async function main() {
       res.end(JSON.stringify({
         status: "healthy",
         name: "cyberchef-mcp",
-        version: "1.0.6",
+        version: "1.0.7",
         uptimeSeconds: Math.floor(process.uptime()),
         timestamp: new Date().toISOString()
       }));
