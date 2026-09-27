@@ -68,7 +68,7 @@ async function timedTool(toolName, input, fn) {
 // Initialize CyberChef MCP Server
 const server = new McpServer({
   name: "cyberchef-mcp",
-  version: "1.0.9"
+  version: "1.0.10"
 });
 
 // Tool 1: Universal Recipe Runner (Bake)
@@ -448,9 +448,12 @@ async function main() {
     if (req.method === "GET" && (url.pathname === "/hero-art.jpg" || url.pathname === "/public/hero-art.jpg")) {
       const imgPath = path.join(__dirname, "public", "hero-art.jpg");
       if (fs.existsSync(imgPath)) {
+        const stat = fs.statSync(imgPath);
         res.writeHead(200, {
           "Content-Type": "image/jpeg",
-          "Cache-Control": "public, max-age=604800, immutable"
+          "Content-Length": stat.size,
+          "Cache-Control": "public, max-age=86400",
+          "Access-Control-Allow-Origin": "*"
         });
         fs.createReadStream(imgPath).pipe(res);
         return;
@@ -512,7 +515,7 @@ async function main() {
       res.end(JSON.stringify({
         status: "healthy",
         name: "cyberchef-mcp",
-        version: "1.0.9",
+        version: "1.0.10",
         uptimeSeconds: Math.floor(process.uptime()),
         timestamp: new Date().toISOString()
       }));

@@ -173,42 +173,40 @@ export function renderLandingPage(host, port) {
       position: absolute;
       top: 0;
       right: 0;
-      width: 65%;
+      width: 52%;
       height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
       pointer-events: none;
       z-index: 1;
       overflow: hidden;
+      background: url('/hero-art.jpg?v=1.0.10') no-repeat right center / contain;
     }
 
     .hero-art-img {
-      width: 100%;
       height: 100%;
-      object-fit: cover;
+      width: 100%;
+      object-fit: contain;
       object-position: right center;
-      filter: contrast(1.22) brightness(1.08) saturate(1.18);
+      filter: contrast(1.25) brightness(1.12) saturate(1.22);
       image-rendering: -webkit-optimize-contrast;
-      transform: scale(1.02);
-      animation: artZoom 24s ease-in-out infinite alternate;
-    }
-
-    @keyframes artZoom {
-      0% { transform: scale(1.0); }
-      100% { transform: scale(1.03); }
+      opacity: 1;
     }
 
     .hero-art-mask {
       position: absolute;
       inset: 0;
       background: 
-        linear-gradient(to right, #090D15 0%, rgba(9, 13, 21, 0.95) 15%, rgba(9, 13, 21, 0.4) 40%, transparent 65%),
-        linear-gradient(to bottom, transparent 80%, #090D15 100%),
-        linear-gradient(to top, transparent 85%, #090D15 100%);
+        linear-gradient(to right, #090D15 0%, rgba(9, 13, 21, 0.75) 12%, transparent 35%),
+        linear-gradient(to bottom, transparent 85%, #090D15 100%),
+        linear-gradient(to top, transparent 88%, #090D15 100%);
     }
 
     .hero-content {
       position: relative;
       z-index: 2;
-      max-width: 620px;
+      max-width: 560px;
     }
 
     .hero-eyebrow {
@@ -226,6 +224,20 @@ export function renderLandingPage(host, port) {
       letter-spacing: -0.035em;
       color: #FFFFFF;
       margin-bottom: 1.5rem;
+    }
+
+    .gradient-peach {
+      background: linear-gradient(135deg, #FFF1E8 0%, #F5D0BD 45%, #F59E74 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      display: inline-block;
+    }
+
+    .gradient-cyan {
+      background: linear-gradient(135deg, #E0F2FE 0%, #38BDF8 50%, #818CF8 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      display: inline-block;
     }
 
     .hero-subtitle {
@@ -724,9 +736,12 @@ export function renderLandingPage(host, port) {
 
     /* Mobile Responsive Breakdown */
     @media (max-width: 1024px) {
+      .hero-container {
+        padding: 3.5rem 2rem 2.5rem;
+      }
       .hero-art-wrapper {
-        width: 100%;
-        opacity: 0.28;
+        width: 48%;
+        opacity: 0.9;
       }
       .metrics-bar {
         grid-template-columns: repeat(2, 1fr);
@@ -749,10 +764,23 @@ export function renderLandingPage(host, port) {
     @media (max-width: 768px) {
       .nav-links { display: none; }
       .hero-container {
-        padding: 3rem 1.5rem 2.5rem;
+        flex-direction: column;
+        padding: 2.5rem 1.25rem 2rem;
+      }
+      .hero-content {
+        max-width: 100%;
+        margin-bottom: 2rem;
       }
       .hero-title {
-        font-size: 2.5rem;
+        font-size: 2.25rem;
+      }
+      .hero-art-wrapper {
+        position: relative;
+        width: 100%;
+        height: 300px;
+        order: -1;
+        opacity: 1;
+        margin-bottom: 1.5rem;
       }
       .metrics-bar {
         grid-template-columns: 1fr;
@@ -811,7 +839,7 @@ export function renderLandingPage(host, port) {
   <!-- Hero Section with Ink Art on the Right -->
   <section class="hero-container">
     <div class="hero-art-wrapper">
-      <img src="/hero-art.jpg" alt="Botanical Cyber Art" class="hero-art-img" onerror="this.style.display='none'" />
+      <img src="/hero-art.jpg?v=1.0.10" alt="Botanical Cyber Art" class="hero-art-img" loading="eager" />
       <div class="hero-art-mask"></div>
     </div>
 
@@ -819,8 +847,8 @@ export function renderLandingPage(host, port) {
       <div class="hero-eyebrow">Deterministic Cryptography & Payload Forensics</div>
       
       <h1 class="hero-title">
-        The cryptographic engine<br>
-        for autonomous agents.
+        The <span class="gradient-peach">cryptographic engine</span><br>
+        for <span class="gradient-cyan">autonomous agents.</span>
       </h1>
 
       <p class="hero-subtitle">
