@@ -173,40 +173,41 @@ export function renderLandingPage(host, port) {
       position: absolute;
       top: 0;
       right: 0;
-      width: 52%;
+      width: 58%;
       height: 100%;
-      display: flex;
-      align-items: center;
-      justify-content: flex-end;
       pointer-events: none;
       z-index: 1;
       overflow: hidden;
-      background: url('/hero-art.jpg?v=1.0.10') no-repeat right center / contain;
     }
 
     .hero-art-img {
-      height: 100%;
       width: 100%;
-      object-fit: contain;
-      object-position: right center;
-      filter: contrast(1.25) brightness(1.12) saturate(1.22);
-      image-rendering: -webkit-optimize-contrast;
-      opacity: 1;
+      height: 100%;
+      object-fit: cover;
+      object-position: 74% center;
+      filter: contrast(1.15) brightness(1.04) saturate(1.12);
+      transform: scale(1.02);
+      animation: artZoom 20s ease-in-out infinite alternate;
+    }
+
+    @keyframes artZoom {
+      0% { transform: scale(1.0); }
+      100% { transform: scale(1.04); }
     }
 
     .hero-art-mask {
       position: absolute;
       inset: 0;
       background: 
-        linear-gradient(to right, #090D15 0%, rgba(9, 13, 21, 0.75) 12%, transparent 35%),
-        linear-gradient(to bottom, transparent 85%, #090D15 100%),
-        linear-gradient(to top, transparent 88%, #090D15 100%);
+        linear-gradient(to right, #090D15 0%, rgba(9, 13, 21, 0.95) 12%, rgba(9, 13, 21, 0.5) 45%, transparent 100%),
+        linear-gradient(to bottom, #090D15 0%, transparent 12%, transparent 82%, #090D15 100%),
+        radial-gradient(ellipse at 75% 45%, transparent 45%, rgba(9, 13, 21, 0.5) 78%, #090D15 100%);
     }
 
     .hero-content {
       position: relative;
       z-index: 2;
-      max-width: 560px;
+      max-width: 600px;
     }
 
     .hero-eyebrow {
@@ -226,26 +227,12 @@ export function renderLandingPage(host, port) {
       margin-bottom: 1.5rem;
     }
 
-    .gradient-peach {
-      background: linear-gradient(135deg, #FFF1E8 0%, #F5D0BD 45%, #F59E74 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      display: inline-block;
-    }
-
-    .gradient-cyan {
-      background: linear-gradient(135deg, #E0F2FE 0%, #38BDF8 50%, #818CF8 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      display: inline-block;
-    }
-
     .hero-subtitle {
       font-size: 1.125rem;
       line-height: 1.6;
       color: var(--text-body);
       margin-bottom: 2.25rem;
-      max-width: 520px;
+      max-width: 540px;
       font-weight: 400;
     }
 
@@ -322,7 +309,7 @@ export function renderLandingPage(host, port) {
       border: 1px solid var(--border-subtle);
       border-radius: 12px;
       padding: 0.65rem 1.15rem;
-      max-width: 560px;
+      max-width: 550px;
       width: 100%;
       box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.05), 0 8px 24px rgba(0, 0, 0, 0.35);
     }
@@ -736,12 +723,9 @@ export function renderLandingPage(host, port) {
 
     /* Mobile Responsive Breakdown */
     @media (max-width: 1024px) {
-      .hero-container {
-        padding: 3.5rem 2rem 2.5rem;
-      }
       .hero-art-wrapper {
-        width: 48%;
-        opacity: 0.9;
+        width: 100%;
+        opacity: 0.28;
       }
       .metrics-bar {
         grid-template-columns: repeat(2, 1fr);
@@ -764,23 +748,10 @@ export function renderLandingPage(host, port) {
     @media (max-width: 768px) {
       .nav-links { display: none; }
       .hero-container {
-        flex-direction: column;
-        padding: 2.5rem 1.25rem 2rem;
-      }
-      .hero-content {
-        max-width: 100%;
-        margin-bottom: 2rem;
+        padding: 3rem 1.5rem 2.5rem;
       }
       .hero-title {
-        font-size: 2.25rem;
-      }
-      .hero-art-wrapper {
-        position: relative;
-        width: 100%;
-        height: 300px;
-        order: -1;
-        opacity: 1;
-        margin-bottom: 1.5rem;
+        font-size: 2.5rem;
       }
       .metrics-bar {
         grid-template-columns: 1fr;
@@ -839,20 +810,20 @@ export function renderLandingPage(host, port) {
   <!-- Hero Section with Ink Art on the Right -->
   <section class="hero-container">
     <div class="hero-art-wrapper">
-      <img src="/hero-art.jpg?v=1.0.10" alt="Botanical Cyber Art" class="hero-art-img" loading="eager" />
+      <img src="/hero-art.jpg?v=1.0.11" alt="Botanical Cyber Art" class="hero-art-img" loading="eager" />
       <div class="hero-art-mask"></div>
     </div>
 
     <div class="hero-content">
-      <div class="hero-eyebrow">Deterministic Cryptography & Payload Forensics</div>
+      <div class="hero-eyebrow">The #1 agentic cryptographic toolkit</div>
       
       <h1 class="hero-title">
-        The <span class="gradient-peach">cryptographic engine</span><br>
-        for <span class="gradient-cyan">autonomous agents.</span>
+        The operating layer<br>
+        for agent harnesses.
       </h1>
 
       <p class="hero-subtitle">
-        Deobfuscate, decrypt, and inspect security payloads in sub-milliseconds. Give your AI coding and pentesting agents a zero-dependency cryptographic core.
+        Skills, memory, planning and security. Give your coding agents a deterministic cryptographic engine, across the tools you use.
       </p>
 
       <div class="hero-cta-group">
@@ -1087,7 +1058,7 @@ export function renderLandingPage(host, port) {
   <!-- Page Footer -->
   <footer class="page-footer">
     <div>
-      <strong>CyberChef MCP</strong> &middot; Deterministic Cryptographic Engine for AI Agents
+      <strong>CyberChef MCP</strong> &middot; Deterministic Cryptographic Operating Layer for AI Agents
     </div>
   </footer>
 
