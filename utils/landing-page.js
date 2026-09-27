@@ -811,7 +811,7 @@ export function renderLandingPage(host, port) {
   <!-- Hero Section with Ink Art on the Right -->
   <section class="hero-container">
     <div class="hero-art-wrapper">
-      <img src="/hero-art.jpg?v=1.0.13" alt="Botanical Cyber Art" class="hero-art-img" loading="eager" />
+      <img src="/hero-art.jpg?v=1.0.14" alt="Botanical Cyber Art" class="hero-art-img" loading="eager" />
       <div class="hero-art-mask"></div>
     </div>
 
