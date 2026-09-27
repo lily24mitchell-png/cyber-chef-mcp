@@ -127,8 +127,7 @@ export class CyberChefEngine {
           current = BuiltinChef.extractEmails(current).join("\n");
           break;
         case "extract ip addresses":
-          const ips = current.match(/\b(?:\d{1,3}\.){3}\d{1,3}\b/g) || [];
-          current = [...new Set(ips)].join("\n");
+          current = BuiltinChef.extractIpAddresses(current).join("\n");
           break;
         case "strings":
           current = BuiltinChef.strings(current, args[0] || 4).join("\n");

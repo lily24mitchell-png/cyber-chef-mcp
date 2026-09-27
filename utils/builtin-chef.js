@@ -112,23 +112,88 @@ export const BuiltinChef = {
   },
 
   analyseHash(hash) {
-    const h = String(hash).trim().toLowerCase();
+    const raw = String(hash).trim();
+    // 1. PHC string detection: $argon2id$v=19$m=19456,t=2,p=1$salt$hash, scrypt, pbkdf2
+    const phc = /^\$(argon2(?:id|i|d)|scrypt|pbkdf2(?:-sha\d+)?)\$/i.exec(raw);
+    if (phc) {
+      const fields = raw.split("$").filter(Boolean);
+      const params = {};
+      for (const f of fields) {
+        if (f.includes("=")) {
+          for (const kv of f.split(",")) {
+            const [k, v] = kv.split("=");
+            if (k && v !== undefined) {
+              const num = Number(v);
+              params[k] = isNaN(num) ? v : num;
+            }
+          }
+        }
+      }
+      const warnings = [];
+      if (params.m && params.m < 19456) {
+        warnings.push("memory cost below OWASP minimum of 19 MiB (19456 KiB)");
+      }
+      if (params.t && params.t < 2) {
+        warnings.push("iteration count below OWASP recommendation (t >= 2)");
+      }
+      return {
+        algorithm: phc[1].toLowerCase(),
+        params,
+        confidence: "certain",
+        probableTypes: [phc[1]],
+        warnings
+      };
+    }
+
+    const h = raw.toLowerCase();
     const len = h.length;
     const candidates = [];
-    if (/^[0-9a-f]+$/.test(h)) {
-      if (len === 32) candidates.push("MD5", "NTLM", "MD4");
-      else if (len === 40) candidates.push("SHA-1", "RIPEMD-160");
+
+    // 2. Bcrypt prefix check: $2$, $2a$, $2b$, $2x$, $2y$
+    if (/^\$2[abxy]?\$/i.test(raw)) {
+      return {
+        algorithm: "bcrypt",
+        probableTypes: ["Bcrypt"],
+        confidence: "certain",
+        length: len
+      };
+    }
+    if (h.startsWith("$6$")) {
+      return {
+        algorithm: "sha512crypt",
+        probableTypes: ["SHA-512 Crypt"],
+        confidence: "certain",
+        length: len
+      };
+    }
+    if (h.startsWith("$5$")) {
+      return {
+        algorithm: "sha256crypt",
+        probableTypes: ["SHA-256 Crypt"],
+        confidence: "certain",
+        length: len
+      };
+    }
+
+    // 3. Hex digests with ranked confidence
+    if (/^[0-9a-f]+$/i.test(h)) {
+      if (len === 32) {
+        return {
+          lengthHex: 32,
+          probableTypes: ["MD5", "NTLM", "MD4"],
+          rankedConfidence: [
+            { type: "MD5", confidence: "high", reason: "Standard 128-bit hex digest" },
+            { type: "NTLM", confidence: "medium", reason: "Windows NTLM password hash" },
+            { type: "MD4", confidence: "low", reason: "Legacy hash algorithm" }
+          ]
+        };
+      } else if (len === 40) candidates.push("SHA-1", "RIPEMD-160");
       else if (len === 56) candidates.push("SHA-224", "SHA3-224");
       else if (len === 64) candidates.push("SHA-256", "SHA3-256", "BLAKE2s-256");
       else if (len === 96) candidates.push("SHA-384", "SHA3-384");
       else if (len === 128) candidates.push("SHA-512", "SHA3-512", "BLAKE2b-512");
-    } else if (h.startsWith("$2a$") || h.startsWith("$2b$") || h.startsWith("$2y$")) {
-      candidates.push("Bcrypt");
-    } else if (h.startsWith("$6$")) {
-      candidates.push("SHA-512 Crypt");
-    } else if (h.startsWith("$5$")) {
-      candidates.push("SHA-256 Crypt");
     }
+
     return {
       hash: h,
       lengthHex: len,
@@ -139,7 +204,17 @@ export const BuiltinChef = {
   // Analysis & Forensics
   entropy(input) {
     const str = String(input);
-    if (!str.length) return 0;
+    if (!str.length) {
+      return {
+        shannonEntropy: 0,
+        entropy: 0,
+        bitsPerChar: 0,
+        totalBits: 0,
+        length: 0,
+        interpretation: "Empty input"
+      };
+    }
+
     const freqs = {};
     for (const ch of str) freqs[ch] = (freqs[ch] || 0) + 1;
     let ent = 0;
@@ -147,13 +222,31 @@ export const BuiltinChef = {
       const p = freqs[ch] / str.length;
       ent -= p * Math.log2(p);
     }
+
+    const alphabet = /^[0-9a-fA-F\s]+$/.test(str)
+      ? { name: "hex", max: 4 }
+      : /^[A-Za-z0-9+/=_-]+$/.test(str)
+      ? { name: "base64", max: 6 }
+      : { name: "raw", max: 8 };
+
+    const saturation = ent / alphabet.max;
+
     return {
-      entropy: Number(ent.toFixed(4)),
-      shannonEntropy: Number(ent.toFixed(4)),
+      shannonEntropy: +ent.toFixed(4),
+      entropy: +ent.toFixed(4),
+      bitsPerChar: +ent.toFixed(4),
+      alphabet: alphabet.name,
+      maxForAlphabet: alphabet.max,
+      saturation: +saturation.toFixed(3),
+      totalBits: Math.round(ent * str.length),
       length: str.length,
-      interpretation: ent > 7.2 ? "High entropy (likely encrypted / compressed)" :
-                      ent > 4.5 ? "Moderate entropy (encoded / source code / structured)" :
-                                  "Low entropy (plain text / repetitive)"
+      interpretation: saturation > 0.95
+        ? "Near-maximal for this alphabet (random / encrypted / compressed)"
+        : saturation > 0.75
+        ? "High for this alphabet (encoded or compressed)"
+        : saturation > 0.45
+        ? "Moderate (structured text / source code)"
+        : "Low (repetitive or plain text)"
     };
   },
 
@@ -200,6 +293,14 @@ export const BuiltinChef = {
     const emailRegex = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/gi;
     const matches = String(text).match(emailRegex) || [];
     return [...new Set(matches)];
+  },
+
+  extractIpAddresses(text) {
+    const ipv4Regex = /\b(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\b/g;
+    const ipv6Regex = /(?:[0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}|(?:[0-9a-fA-F]{1,4}:){1,7}:|(?:[0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}|(?:[0-9a-fA-F]{1,4}:){1,5}(?::[0-9a-fA-F]{1,4}){1,2}|(?:[0-9a-fA-F]{1,4}:){1,4}(?::[0-9a-fA-F]{1,4}){1,3}|(?:[0-9a-fA-F]{1,4}:){1,3}(?::[0-9a-fA-F]{1,4}){1,4}|(?:[0-9a-fA-F]{1,4}:){1,2}(?::[0-9a-fA-F]{1,4}){1,5}|[0-9a-fA-F]{1,4}:(?:(?::[0-9a-fA-F]{1,4}){1,6})|:(?:(?::[0-9a-fA-F]{1,4}){1,7}|:)|fe80:(?::[0-9a-fA-F]{0,4}){0,4}%[0-9a-zA-Z]{1,}|::(?:ffff(?::0{1,4}){0,1}:){0,1}(?:(?:25[0-5]|(?:2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(?:25[0-5]|(?:2[0-4]|1{0,1}[0-9]){0,1}[0-9])|(?:[0-9a-fA-F]{1,4}:){1,4}:(?:(?:25[0-5]|(?:2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(?:25[0-5]|(?:2[0-4]|1{0,1}[0-9]){0,1}[0-9])/gi;
+    const ipv4Matches = String(text).match(ipv4Regex) || [];
+    const ipv6Matches = String(text).match(ipv6Regex) || [];
+    return [...new Set([...ipv4Matches, ...ipv6Matches])];
   },
 
   strings(input, minLength = 4) {

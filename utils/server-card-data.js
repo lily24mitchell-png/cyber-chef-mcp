@@ -1,7 +1,7 @@
 export const SERVER_CARD = {
   "serverInfo": {
     "name": "cyberchef-mcp",
-    "version": "1.0.3"
+    "version": "1.0.4"
   },
   "authentication": {
     "required": false
@@ -158,11 +158,11 @@ export const SERVER_CARD = {
     },
     {
       "name": "cyberchef_analyse_hash",
-      "description": "Identifies probable cryptographic hash algorithms for a given digest.",
+      "description": "Identifies probable cryptographic hash algorithms for a given digest based on character set, bit length, and structural signatures. Supports modern password hashes (Argon2id/i/d, scrypt, PBKDF2) with OWASP parameter checks, full bcrypt prefix recognition ($2$, $2a$, $2b$, $2x$, $2y$), and ranked confidence for hex digests (MD5 vs NTLM vs MD4).",
       "inputSchema": {
         "type": "object",
         "properties": {
-          "hash": { "type": "string", "description": "Hash digest string to identify" }
+          "hash": { "type": "string", "description": "Hash digest or password hash string to identify" }
         },
         "required": ["hash"]
       }
@@ -180,7 +180,7 @@ export const SERVER_CARD = {
     },
     {
       "name": "cyberchef_entropy",
-      "description": "Calculates representation-calibrated Shannon entropy to determine randomness, encryption, or packing.",
+      "description": "Calculates Shannon entropy and saturation against the input alphabet (Hex max 4.0 bits/char, Base64 max 6.0 bits/char, Raw max 8.0 bits/char). Reports bitsPerChar, saturation ratio, and totalBits to accurately determine whether data is plaintext, compressed, packed shellcode, or high-entropy encrypted ciphertext.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -213,7 +213,7 @@ export const SERVER_CARD = {
     },
     {
       "name": "cyberchef_extract_entities",
-      "description": "Extracts URLs, IP addresses, and email addresses from unstructured logs or payloads.",
+      "description": "Extracts URLs, IPv4 and IPv6 addresses, and email addresses from unstructured logs or payloads.",
       "inputSchema": {
         "type": "object",
         "properties": {

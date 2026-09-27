@@ -3,15 +3,23 @@ import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js"
 import { SSEServerTransport } from "@modelcontextprotocol/sdk/server/sse.js";
 import http from "node:http";
 import { readFileSync } from "node:fs";
+import { timingSafeEqual } from "node:crypto";
 import { z } from "zod";
 import { CyberChefEngine } from "./utils/cyberchef-runner.js";
 import { BuiltinChef } from "./utils/builtin-chef.js";
 import { SERVER_CARD } from "./utils/server-card-data.js";
 
+function secureCompare(a, b) {
+  if (typeof a !== "string" || typeof b !== "string") return false;
+  const ab = Buffer.from(a);
+  const bb = Buffer.from(b);
+  return ab.length === bb.length && timingSafeEqual(ab, bb);
+}
+
 // Initialize CyberChef MCP Server
 const server = new McpServer({
   name: "cyberchef-mcp",
-  version: "1.0.2"
+  version: "1.0.4"
 });
 
 // Tool 1: Universal Recipe Runner (Bake)
@@ -195,9 +203,9 @@ server.tool(
 // Tool 12: Hash Analysis & Hashing (MD5, SHA256)
 server.tool(
   "cyberchef_analyse_hash",
-  "Identifies probable cryptographic hash algorithms for a given digest based on character set, bit length, and structural signatures (such as MD5, SHA-1, SHA-256, NTLM, bcrypt).",
+  "Identifies probable cryptographic hash algorithms for a given digest based on character set, bit length, and structural signatures. Supports modern password hashes (Argon2id/i/d, scrypt, PBKDF2) with OWASP parameter checks, full bcrypt prefix recognition ($2$, $2a$, $2b$, $2x$, $2y$), and ranked confidence for hex digests (MD5 vs NTLM vs MD4).",
   {
-    hash: z.string().describe("The hash digest string to inspect and classify (e.g., a 32-character hex string for MD5, 64-character for SHA-256).")
+    hash: z.string().describe("The hash digest or password hash string to inspect and classify (e.g., PHC string '$argon2id$...', bcrypt '$2b$...', or 32/64-char hex strings).")
   },
   async ({ hash }) => {
     const info = BuiltinChef.analyseHash(hash);
@@ -219,7 +227,7 @@ server.tool(
 // Tool 13: Entropy Analysis
 server.tool(
   "cyberchef_entropy",
-  "Calculates the Shannon entropy (randomness in bits per symbol) of the input data to determine whether it is plaintext, compressed data, packed shellcode, or high-entropy encrypted ciphertext. Provides representation-calibrated analysis for Hex (max 4.0 bits/char) and Base64 (max 6.0 bits/char).",
+  "Calculates Shannon entropy and saturation against the input alphabet (Hex max 4.0 bits/char, Base64 max 6.0 bits/char, Raw max 8.0 bits/char). Reports bitsPerChar, saturation ratio, and totalBits to accurately determine whether data is plaintext, compressed, packed shellcode, or high-entropy encrypted ciphertext.",
   {
     input: z.string().describe("The data string or payload representation to analyze for information density and randomness.")
   },
@@ -257,21 +265,21 @@ server.tool(
 // Tool 16: Forensic Entity Extraction
 server.tool(
   "cyberchef_extract_entities",
-  "Scans unstructured text, logs, memory dumps, or decompiled scripts to automatically extract security entities including IPv4 addresses, URLs, and email addresses.",
+  "Scans unstructured text, logs, memory dumps, or decompiled scripts to automatically extract security entities including IPv4 and IPv6 addresses, URLs, and email addresses.",
   {
     text: z.string().describe("The unstructured text, log excerpt, or payload from which to extract forensic artifacts.")
   },
   async ({ text }) => {
     const urls = BuiltinChef.extractUrls(text);
     const emails = BuiltinChef.extractEmails(text);
-    const ips = (text.match(/\b(?:\d{1,3}\.){3}\d{1,3}\b/g) || []);
+    const ipAddresses = BuiltinChef.extractIpAddresses(text);
     return {
       content: [{
         type: "text",
         text: JSON.stringify({
           urls,
           emails,
-          ipAddresses: [...new Set(ips)]
+          ipAddresses
         }, null, 2)
       }]
     };
@@ -370,21 +378,39 @@ async function main() {
       return;
     }
 
-    // Optional API Key Verification (if MCP_API_KEY env var is configured)
+    // Global Request Body Size Guard (5MB limit across all routes)
+    const MAX_REQUEST_BYTES = 5 * 1024 * 1024;
+    const contentLength = parseInt(req.headers["content-length"] || "0", 10);
+    if (contentLength > MAX_REQUEST_BYTES) {
+      res.writeHead(413, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ error: "Payload Too Large: Maximum allowed request size is 5MB" }));
+      return;
+    }
+
+    // API Key Verification (if MCP_API_KEY env var is configured)
     const requiredApiKey = process.env.MCP_API_KEY;
     if (requiredApiKey) {
-      const providedKey = req.headers["x-api-key"] || url.searchParams.get("key");
       const isPublicPath = url.pathname === "/" || url.pathname === "/health" || url.pathname === "/.well-known/mcp/server-card.json" || url.pathname === "/server-card.json";
-      if (!isPublicPath && providedKey !== requiredApiKey) {
-        res.writeHead(401, { "Content-Type": "application/json" });
-        res.end(JSON.stringify({ error: "Unauthorized: Invalid or missing x-api-key header or ?key= parameter" }));
-        return;
+      if (!isPublicPath) {
+        const headerKey = req.headers["x-api-key"] || (req.headers["authorization"]?.startsWith("Bearer ") ? req.headers["authorization"].slice(7) : null);
+        const queryKey = url.searchParams.get("key");
+
+        if (queryKey && !headerKey) {
+          console.warn("[SECURITY DEPRECATION] API key passed via query parameter '?key='. Query strings appear in server logs, proxy logs, and browser history. Please migrate to the 'x-api-key' or 'Authorization: Bearer' header.");
+        }
+
+        const providedKey = headerKey || queryKey;
+        if (!providedKey || !secureCompare(providedKey, requiredApiKey)) {
+          res.writeHead(401, { "Content-Type": "application/json" });
+          res.end(JSON.stringify({ error: "Unauthorized: Invalid or missing API key. Provide via 'x-api-key' header." }));
+          return;
+        }
       }
     }
 
     if (req.method === "GET" && url.pathname === "/health") {
       res.writeHead(200, { "Content-Type": "application/json" });
-      res.end(JSON.stringify({ status: "healthy", name: "cyberchef-mcp", version: "1.0.3" }));
+      res.end(JSON.stringify({ status: "healthy", name: "cyberchef-mcp", version: "1.0.4" }));
       return;
     }
 
@@ -401,14 +427,6 @@ async function main() {
     }
 
     if (req.method === "POST" && url.pathname === "/message") {
-      const MAX_PAYLOAD_BYTES = 5 * 1024 * 1024; // 5MB guard
-      const contentLength = parseInt(req.headers["content-length"] || "0", 10);
-      if (contentLength > MAX_PAYLOAD_BYTES) {
-        res.writeHead(413, { "Content-Type": "application/json" });
-        res.end(JSON.stringify({ error: "Payload Too Large: Maximum allowed message size is 5MB" }));
-        return;
-      }
-
       if (sseTransport) {
         await sseTransport.handlePostMessage(req, res);
       } else {

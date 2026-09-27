@@ -1,11 +1,27 @@
 {
   "name": "@noorfatima123456/cyber-chef-mcp",
-  "version": "1.0.3",
-  "description": "Model Context Protocol (MCP) Server for CyberChef — 500+ data transformations, crypto, and payload deobfuscation for AI Agents (Claude, Cursor, Windsurf, Strix).",
+  "version": "1.0.4",
+  "description": "Model Context Protocol (MCP) Server with 28 core CyberChef data transformations, ciphers, and payload deobfuscation for AI Agents (Claude, Cursor, Windsurf, Strix).",
   "main": "server.js",
   "bin": {
     "cyber-chef-mcp": "bin/cyberchef-mcp.js",
     "cyberchef-mcp": "bin/cyberchef-mcp.js"
+  },
+  "files": [
+    "server.js",
+    "bin",
+    "utils",
+    ".well-known",
+    "test.js",
+    "benchmark.js",
+    "docs",
+    "README.md",
+    "LICENSE",
+    "glama.json",
+    "smithery.yaml"
+  ],
+  "engines": {
+    "node": ">=18.0.0"
   },
   "type": "module",
   "scripts": {

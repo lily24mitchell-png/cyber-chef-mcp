@@ -103,4 +103,46 @@ const magicHex = CyberChefEngine.magic("48656c6c6f20576f726c64");
 assert(magicHex.suggestions.some(s => s.description.includes("Hexadecimal")), "Should detect Hexadecimal encoding in suggestions");
 console.log("   ✅ Heuristic Magic passed");
 
-console.log("\n🎉 ALL 11 TEST SUITES PASSED CLEANLY!");
+// Test 12: Calibrated Entropy with Alphabet Detection & Total Bits
+console.log("12. Testing Calibrated Entropy (Issue #2 Fix)...");
+const base64Token = "Khn583yd1-tfLW7dHYqBQlxHdxtM37bv7Xtnh5DK5Gc";
+const tokenEntropy = BuiltinChef.entropy(base64Token);
+assert.strictEqual(tokenEntropy.alphabet, "base64");
+assert.strictEqual(tokenEntropy.maxForAlphabet, 6);
+assert(tokenEntropy.saturation > 0.75, "Base64 token saturation should be > 0.75");
+assert(tokenEntropy.totalBits >= 200, `Expected totalBits >= 200, got ${tokenEntropy.totalBits}`);
+assert(tokenEntropy.interpretation.includes("High for this alphabet"), "Expected high for this alphabet interpretation");
+console.log(`   ✅ Calibrated Entropy passed (Alphabet: ${tokenEntropy.alphabet}, Saturation: ${tokenEntropy.saturation}, Total Bits: ${tokenEntropy.totalBits})`);
+
+// Test 13: Modern Hash Analysis & PHC Argon2id Parsing (Issue #3 Fix)
+console.log("13. Testing Modern Hash Analysis & PHC Parsing (Issue #3 Fix)...");
+const argonHash = "$argon2id$v=19$m=19456,t=2,p=1$c2FsdHNhbHQ$dGVzdGhhc2g";
+const argonResult = BuiltinChef.analyseHash(argonHash);
+assert.strictEqual(argonResult.algorithm, "argon2id");
+assert.strictEqual(argonResult.confidence, "certain");
+assert.strictEqual(argonResult.params.m, 19456);
+assert.strictEqual(argonResult.warnings.length, 0);
+
+// Weak Argon2id warning test
+const weakArgonHash = "$argon2id$v=19$m=4096,t=1,p=1$c2FsdHNhbHQ$dGVzdGhhc2g";
+const weakArgonResult = BuiltinChef.analyseHash(weakArgonHash);
+assert(weakArgonResult.warnings.length > 0, "Should warn on low memory cost");
+
+// Bcrypt test
+const bcryptResult = BuiltinChef.analyseHash("$2b$12$e8KERg.j6B..test");
+assert.strictEqual(bcryptResult.algorithm, "bcrypt");
+
+// Ranked Hex confidence test
+const hex32Result = BuiltinChef.analyseHash("5d41402abc4b2a76b9719d911017c592");
+assert(hex32Result.rankedConfidence && hex32Result.rankedConfidence.length === 3);
+console.log("   ✅ Modern Hash & PHC analysis passed");
+
+// Test 14: IPv4 and IPv6 Extraction (Issue #1c Fix)
+console.log("14. Testing IPv4 and IPv6 extraction (Issue #1c Fix)...");
+const mixedLog = "Traffic from 192.168.1.1 and 2001:0db8:85a3:0000:0000:8a2e:0370:7334 and ::1 connecting to api.";
+const extractedIps = BuiltinChef.extractIpAddresses(mixedLog);
+assert(extractedIps.includes("192.168.1.1"), "Should extract IPv4 address");
+assert(extractedIps.some(ip => ip.includes("2001:0db8") || ip === "::1"), "Should extract IPv6 address");
+console.log(`   ✅ IPv4 & IPv6 extraction passed: [${extractedIps.join(", ")}]`);
+
+console.log("\n🎉 ALL 14 TEST SUITES PASSED CLEANLY!");

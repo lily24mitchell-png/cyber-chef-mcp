@@ -19,7 +19,7 @@ pinned: false
 [![Smithery](https://smithery.ai/badge/@noor-202401938/cyber-chef-mcp)](https://smithery.ai/server/@noor-202401938/cyber-chef-mcp)
 [![Glama Score](https://glama.ai/mcp/servers/noor202401938-netizen/cyber-chef-mcp/badges/score.svg)](https://glama.ai/mcp/servers/noor202401938-netizen/cyber-chef-mcp)
 
-The **CyberChef Model Context Protocol (MCP)** server exposes the power of [CyberChef (The Cyber Swiss Army Knife)](https://github.com/gchq/CyberChef) directly to autonomous coding and security agents, including **Claude Desktop**, **Cursor IDE**, **Windsurf**, and **[Strix Pentesting Framework](docs/strix-integration.md)**.
+The **CyberChef Model Context Protocol (MCP)** server provides 28 well-tested, zero-dependency core CyberChef operations directly to autonomous coding and security agents, including **Claude Desktop**, **Cursor IDE**, **Windsurf**, and **[Strix Pentesting Framework](docs/strix-integration.md)**.
 
 Agents can dynamically bake complex multi-stage recipe pipelines (Hex -> XOR -> Base64 -> Deflate -> Regex) in a single turn without hallucinating encodings or failing on obscure binary transformations.
 
@@ -41,13 +41,14 @@ Instead of burning thousands of output tokens having an LLM write, debug, and ex
 
 ## 🚀 Features
 
-- **⚡ Native Recipe Execution (`cyberchef_bake`)**: Chain any sequence of operations with arbitrary parameters.
+- **⚡ Native Recipe Execution (`cyberchef_bake`)**: Chain any sequence of 28 operations with arbitrary parameters with ReDoS & memory guards.
 - **🪄 Magic Mode (`cyberchef_magic`)**: Automatically detect and deobfuscate unknown payloads without prior knowledge of the encoding scheme.
 - **🛡️ Specialized Cybersecurity Primitives**:
+  - `cyberchef_entropy`: Alphabet-calibrated Shannon entropy (Hex max 4.0, Base64 max 6.0, Raw max 8.0) reporting saturation and totalBits to accurately classify CSPRNG tokens vs plaintext.
+  - `cyberchef_analyse_hash`: Modern password hash recognition (Argon2id/i/d, scrypt, PBKDF2) with OWASP parameter audits, full bcrypt prefixes ($2$, $2a$, $2b$, $2x$, $2y$), and ranked hex confidence.
   - `cyberchef_jwt_decode`: Parse header, claims, and signature with Unix expiry conversions.
-  - `cyberchef_entropy`: Measure Shannon entropy to detect packed, obfuscated, or encrypted blobs.
   - `cyberchef_defang_url`: Sanitize malicious URLs and IPs (`hxxps[://]`, `192[.]168[.]1[.]1`) before safe display.
-  - `cyberchef_extract_entities`: Forensic extraction of URLs, emails, and IPv4 addresses from logs.
+  - `cyberchef_extract_entities`: Forensic extraction of URLs, emails, and dual-stack IPv4 and IPv6 addresses.
   - `cyberchef_xor` / `cyberchef_rot13`: Bitwise encryption and Caesar rotation ciphers.
   - `cyberchef_from_base64` / `cyberchef_to_base64`, `cyberchef_from_hex` / `cyberchef_to_hex`, `cyberchef_url_decode` / `cyberchef_url_encode`.
 - **📚 Interactive Catalog (`cyberchef_help`)**: Allows agents to introspect available operations and parameter schemas dynamically on demand.
