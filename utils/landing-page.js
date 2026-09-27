@@ -173,7 +173,7 @@ export function renderLandingPage(host, port) {
       position: absolute;
       top: 0;
       right: 0;
-      width: 58%;
+      width: 65%;
       height: 100%;
       pointer-events: none;
       z-index: 1;
@@ -184,30 +184,31 @@ export function renderLandingPage(host, port) {
       width: 100%;
       height: 100%;
       object-fit: cover;
-      object-position: 68% center;
-      filter: contrast(1.08) brightness(0.92);
+      object-position: right center;
+      filter: contrast(1.22) brightness(1.08) saturate(1.18);
+      image-rendering: -webkit-optimize-contrast;
       transform: scale(1.02);
-      animation: artZoom 20s ease-in-out infinite alternate;
+      animation: artZoom 24s ease-in-out infinite alternate;
     }
 
     @keyframes artZoom {
       0% { transform: scale(1.0); }
-      100% { transform: scale(1.04); }
+      100% { transform: scale(1.03); }
     }
 
     .hero-art-mask {
       position: absolute;
       inset: 0;
       background: 
-        linear-gradient(to right, #090D15 0%, rgba(9, 13, 21, 0.95) 12%, rgba(9, 13, 21, 0.6) 45%, transparent 100%),
-        linear-gradient(to bottom, #090D15 0%, transparent 12%, transparent 82%, #090D15 100%),
-        radial-gradient(ellipse at 75% 45%, transparent 35%, rgba(9, 13, 21, 0.65) 75%, #090D15 100%);
+        linear-gradient(to right, #090D15 0%, rgba(9, 13, 21, 0.95) 15%, rgba(9, 13, 21, 0.4) 40%, transparent 65%),
+        linear-gradient(to bottom, transparent 80%, #090D15 100%),
+        linear-gradient(to top, transparent 85%, #090D15 100%);
     }
 
     .hero-content {
       position: relative;
       z-index: 2;
-      max-width: 680px;
+      max-width: 620px;
     }
 
     .hero-eyebrow {
@@ -232,7 +233,7 @@ export function renderLandingPage(host, port) {
       line-height: 1.6;
       color: var(--text-body);
       margin-bottom: 2.25rem;
-      max-width: 540px;
+      max-width: 520px;
       font-weight: 400;
     }
 
@@ -304,12 +305,12 @@ export function renderLandingPage(host, port) {
       display: inline-flex;
       align-items: center;
       justify-content: space-between;
-      gap: 1.5rem;
+      gap: 1.25rem;
       background: rgba(14, 19, 31, 0.9);
       border: 1px solid var(--border-subtle);
       border-radius: 12px;
       padding: 0.65rem 1.15rem;
-      max-width: 520px;
+      max-width: 560px;
       width: 100%;
       box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.05), 0 8px 24px rgba(0, 0, 0, 0.35);
     }
@@ -319,10 +320,11 @@ export function renderLandingPage(host, port) {
       align-items: center;
       gap: 0.65rem;
       font-family: var(--font-mono);
-      font-size: 0.875rem;
+      font-size: 0.8125rem;
       color: #E2E8F0;
       white-space: nowrap;
-      overflow-x: auto;
+      overflow-x: hidden;
+      text-overflow: ellipsis;
     }
 
     .terminal-cmd .prompt-sym {
@@ -711,23 +713,13 @@ export function renderLandingPage(host, port) {
     /* Footer */
     .page-footer {
       border-top: 1px solid var(--border-subtle);
-      padding: 3rem 2.5rem;
+      padding: 2.5rem 2rem;
       display: flex;
       align-items: center;
-      justify-content: space-between;
+      justify-content: center;
       color: var(--text-muted);
       font-size: 0.8125rem;
-      flex-wrap: wrap;
-      gap: 1.5rem;
-    }
-
-    .footer-links {
-      display: flex;
-      gap: 1.5rem;
-    }
-
-    .footer-links a:hover {
-      color: var(--text-headline);
+      text-align: center;
     }
 
     /* Mobile Responsive Breakdown */
@@ -794,9 +786,6 @@ export function renderLandingPage(host, port) {
         <li><a href="#operations">Tools</a></li>
         <li><a href="#sandbox">Sandbox</a></li>
         <li><a href="#clients">Platforms</a></li>
-        <li><a href="#security">Security</a></li>
-        <li><a href="/.well-known/mcp/server-card.json" target="_blank">Server Card</a></li>
-        <li><a href="/health" target="_blank">Health</a></li>
       </ul>
     </nav>
 
@@ -827,15 +816,15 @@ export function renderLandingPage(host, port) {
     </div>
 
     <div class="hero-content">
-      <div class="hero-eyebrow">The #1 agentic cryptographic toolkit</div>
+      <div class="hero-eyebrow">Deterministic Cryptography & Payload Forensics</div>
       
       <h1 class="hero-title">
-        The operating layer<br>
-        for agent harnesses.
+        The cryptographic engine<br>
+        for autonomous agents.
       </h1>
 
       <p class="hero-subtitle">
-        Skills, memory, planning and security. Give your coding agents a deterministic cryptographic engine, across the tools you use.
+        Deobfuscate, decrypt, and inspect security payloads in sub-milliseconds. Give your AI coding and pentesting agents a zero-dependency cryptographic core.
       </p>
 
       <div class="hero-cta-group">
@@ -1070,13 +1059,7 @@ export function renderLandingPage(host, port) {
   <!-- Page Footer -->
   <footer class="page-footer">
     <div>
-      <strong>CyberChef MCP</strong> &middot; Deterministic Cryptographic Layer for AI Agents
-    </div>
-    <div class="footer-links">
-      <a href="https://www.npmjs.com/package/@noorfatima123456/cyber-chef-mcp" target="_blank" rel="noopener">npm v1.0.8</a>
-      <a href="https://github.com/noor202401938-netizen/cyber-chef-mcp" target="_blank" rel="noopener">GitHub</a>
-      <a href="/.well-known/mcp/server-card.json" target="_blank">Server Card</a>
-      <a href="/health" target="_blank">Health Check</a>
+      <strong>CyberChef MCP</strong> &middot; Deterministic Cryptographic Engine for AI Agents
     </div>
   </footer>
 
