@@ -184,24 +184,25 @@ export function renderLandingPage(host, port) {
       width: 100%;
       height: 100%;
       object-fit: cover;
-      object-position: 74% center;
-      filter: contrast(1.15) brightness(1.04) saturate(1.12);
-      transform: scale(1.02);
-      animation: artZoom 20s ease-in-out infinite alternate;
+      object-position: 72% center;
+      filter: contrast(1.22) brightness(1.12) saturate(1.2);
+      image-rendering: -webkit-optimize-contrast;
+      transform: scaleX(-1) scale(1.02);
+      animation: artZoom 24s ease-in-out infinite alternate;
     }
 
     @keyframes artZoom {
-      0% { transform: scale(1.0); }
-      100% { transform: scale(1.04); }
+      0% { transform: scaleX(-1) scale(1.0); }
+      100% { transform: scaleX(-1) scale(1.04); }
     }
 
     .hero-art-mask {
       position: absolute;
       inset: 0;
       background: 
-        linear-gradient(to right, #090D15 0%, rgba(9, 13, 21, 0.95) 12%, rgba(9, 13, 21, 0.5) 45%, transparent 100%),
-        linear-gradient(to bottom, #090D15 0%, transparent 12%, transparent 82%, #090D15 100%),
-        radial-gradient(ellipse at 75% 45%, transparent 45%, rgba(9, 13, 21, 0.5) 78%, #090D15 100%);
+        linear-gradient(to right, #090D15 0%, rgba(9, 13, 21, 0.85) 15%, transparent 50%),
+        linear-gradient(to bottom, transparent 80%, #090D15 100%),
+        linear-gradient(to top, transparent 85%, #090D15 100%);
     }
 
     .hero-content {
@@ -810,7 +811,7 @@ export function renderLandingPage(host, port) {
   <!-- Hero Section with Ink Art on the Right -->
   <section class="hero-container">
     <div class="hero-art-wrapper">
-      <img src="/hero-art.jpg?v=1.0.11" alt="Botanical Cyber Art" class="hero-art-img" loading="eager" />
+      <img src="/hero-art.jpg?v=1.0.12" alt="Botanical Cyber Art" class="hero-art-img" loading="eager" />
       <div class="hero-art-mask"></div>
     </div>
 
