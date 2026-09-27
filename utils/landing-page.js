@@ -160,20 +160,19 @@ export function renderLandingPage(host, port) {
     /* Hero Section */
     .hero-container {
       position: relative;
-      min-height: 84vh;
+      min-height: 85vh;
       display: flex;
       align-items: center;
-      padding: 4.5rem 3.5rem 3.5rem;
+      padding: 5rem 3.5rem 4rem;
       overflow: hidden;
-      background-color: var(--bg-canvas);
+      background-color: #090D15;
     }
 
-    /* Hero Right Artwork with Atmospheric Ink Blending */
+    /* Hero Background Artwork */
     .hero-art-wrapper {
       position: absolute;
-      top: 0;
-      right: 0;
-      width: 58%;
+      inset: 0;
+      width: 100%;
       height: 100%;
       pointer-events: none;
       z-index: 1;
@@ -185,31 +184,23 @@ export function renderLandingPage(host, port) {
       height: 100%;
       object-fit: cover;
       object-position: right center;
-      filter: contrast(1.22) brightness(1.08) saturate(1.18);
+      filter: contrast(1.15) brightness(1.02) saturate(1.15);
       image-rendering: -webkit-optimize-contrast;
-      transform-origin: right center;
-      transform: scale(0.88);
-      animation: artZoom 24s ease-in-out infinite alternate;
-    }
-
-    @keyframes artZoom {
-      0% { transform: scale(0.88); }
-      100% { transform: scale(0.92); }
     }
 
     .hero-art-mask {
       position: absolute;
       inset: 0;
       background: 
-        linear-gradient(to right, #090D15 0%, rgba(9, 13, 21, 0.95) 15%, rgba(9, 13, 21, 0.4) 40%, transparent 65%),
-        linear-gradient(to bottom, transparent 80%, #090D15 100%),
-        linear-gradient(to top, transparent 85%, #090D15 100%);
+        linear-gradient(to right, #090D15 0%, rgba(9, 13, 21, 0.95) 32%, rgba(9, 13, 21, 0.6) 58%, rgba(9, 13, 21, 0.15) 85%, transparent 100%),
+        linear-gradient(to bottom, transparent 75%, #090D15 100%),
+        linear-gradient(to top, rgba(9, 13, 21, 0.45) 0%, transparent 20%);
     }
 
     .hero-content {
       position: relative;
       z-index: 2;
-      max-width: 620px;
+      max-width: 660px;
     }
 
     .hero-eyebrow {
@@ -223,24 +214,19 @@ export function renderLandingPage(host, port) {
     .hero-title {
       font-size: clamp(2.75rem, 5.2vw, 4.25rem);
       font-weight: 800;
-      line-height: 1.08;
+      line-height: 1.16;
       letter-spacing: -0.035em;
       color: #FFFFFF;
       margin-bottom: 1.5rem;
     }
 
     .hero-title .highlight-peach {
-      background: linear-gradient(135deg, #FFFFFF 0%, #F5D0BD 50%, #F5A376 100%);
+      background: linear-gradient(135deg, #FFFFFF 0%, #F5D0BD 45%, #F7A387 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       display: inline-block;
-    }
-
-    .hero-title .highlight-cyan {
-      background: linear-gradient(135deg, #E0F2FE 0%, #38BDF8 60%, #818CF8 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      display: inline-block;
+      padding-bottom: 0.14em;
+      margin-bottom: -0.14em;
     }
 
     .hero-subtitle {
@@ -248,7 +234,7 @@ export function renderLandingPage(host, port) {
       line-height: 1.6;
       color: var(--text-body);
       margin-bottom: 2.25rem;
-      max-width: 520px;
+      max-width: 540px;
       font-weight: 400;
     }
 
@@ -269,8 +255,8 @@ export function renderLandingPage(host, port) {
       color: var(--peach-text);
       font-weight: 700;
       font-size: 0.9375rem;
-      padding: 0.85rem 1.65rem;
-      border-radius: 9999px;
+      padding: 0.85rem 1.6rem;
+      border-radius: 8px;
       transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
       box-shadow: 0 4px 16px rgba(245, 208, 189, 0.2);
     }
@@ -289,12 +275,12 @@ export function renderLandingPage(host, port) {
       display: inline-flex;
       align-items: center;
       gap: 0.5rem;
-      background: rgba(255, 255, 255, 0.03);
+      background: rgba(255, 255, 255, 0.04);
       color: var(--text-headline);
       font-weight: 600;
       font-size: 0.9375rem;
-      padding: 0.85rem 1.65rem;
-      border-radius: 9999px;
+      padding: 0.85rem 1.6rem;
+      border-radius: 8px;
       border: 1px solid var(--border-subtle);
       transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
     }
@@ -407,20 +393,24 @@ export function renderLandingPage(host, port) {
       border-color: var(--border-strong);
     }
 
-    /* Metrics Bar (Exact Match to Reference Footer Bar) */
+    /* Metrics Bar (Exact Match to Reference Section) */
     .metrics-bar {
-      border-top: 1px solid var(--border-subtle);
-      border-bottom: 1px solid var(--border-subtle);
-      background: #080B12;
+      margin: 1.5rem 3.5rem 4rem;
+      background: rgba(11, 15, 25, 0.9);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 14px;
       display: grid;
       grid-template-columns: repeat(4, 1fr);
       position: relative;
       z-index: 10;
+      backdrop-filter: blur(16px);
+      box-shadow: 0 16px 36px rgba(0, 0, 0, 0.4);
+      overflow: hidden;
     }
 
     .metric-col {
       padding: 2.25rem 2.5rem;
-      border-right: 1px solid var(--border-subtle);
+      border-right: 1px solid rgba(255, 255, 255, 0.06);
     }
 
     .metric-col:last-child {
@@ -428,12 +418,12 @@ export function renderLandingPage(host, port) {
     }
 
     .metric-val {
-      font-size: 2.5rem;
+      font-size: 2.35rem;
       font-weight: 800;
       letter-spacing: -0.03em;
       color: #FFFFFF;
       line-height: 1.1;
-      margin-bottom: 0.35rem;
+      margin-bottom: 0.4rem;
       font-family: var(--font-display);
     }
 
@@ -745,15 +735,16 @@ export function renderLandingPage(host, port) {
       }
       .metrics-bar {
         grid-template-columns: repeat(2, 1fr);
+        margin: 1.5rem 2rem 3rem;
       }
       .metric-col:nth-child(2) {
         border-right: none;
       }
       .metric-col:nth-child(3) {
-        border-top: 1px solid var(--border-subtle);
+        border-top: 1px solid rgba(255, 255, 255, 0.06);
       }
       .metric-col:nth-child(4) {
-        border-top: 1px solid var(--border-subtle);
+        border-top: 1px solid rgba(255, 255, 255, 0.06);
         border-right: none;
       }
       .sandbox-layout {
@@ -764,17 +755,18 @@ export function renderLandingPage(host, port) {
     @media (max-width: 768px) {
       .nav-links { display: none; }
       .hero-container {
-        padding: 3rem 1.5rem 2.5rem;
+        padding: 3.5rem 1.5rem 2.5rem;
       }
       .hero-title {
         font-size: 2.5rem;
       }
       .metrics-bar {
         grid-template-columns: 1fr;
+        margin: 1rem 1.25rem 2.5rem;
       }
       .metric-col {
         border-right: none;
-        border-bottom: 1px solid var(--border-subtle);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.06);
         padding: 1.75rem 1.5rem;
       }
       .metric-col:last-child {
@@ -826,7 +818,7 @@ export function renderLandingPage(host, port) {
   <!-- Hero Section with Ink Art on the Right -->
   <section class="hero-container">
     <div class="hero-art-wrapper">
-      <img src="/hero-art.jpg?v=1.0.15" alt="Botanical Cyber Art" class="hero-art-img" loading="eager" />
+      <img src="/hero-art.jpg?v=1.0.16" alt="Botanical Cyber Art" class="hero-art-img" loading="eager" />
       <div class="hero-art-mask"></div>
     </div>
 
@@ -834,8 +826,8 @@ export function renderLandingPage(host, port) {
       <div class="hero-eyebrow">Deterministic Cryptography & Payload Forensics</div>
       
       <h1 class="hero-title">
-        The <span class="highlight-peach">cryptographic engine</span><br>
-        for <span class="highlight-cyan">autonomous agents.</span>
+        The cryptographic engine<br>
+        <span class="highlight-peach">for autonomous agents.</span>
       </h1>
 
       <p class="hero-subtitle">
@@ -852,7 +844,7 @@ export function renderLandingPage(host, port) {
         </a>
 
         <a href="#operations" class="btn-ghost-pill">
-          <span>Explore 28 operations</span>
+          <span>Explore the tools</span>
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <line x1="5" y1="12" x2="19" y2="12"/>
             <polyline points="12 5 19 12 12 19"/>
@@ -862,7 +854,7 @@ export function renderLandingPage(host, port) {
 
       <!-- Guided Setup Terminal Box -->
       <div class="guided-setup-wrapper">
-        <div class="setup-label">Guided setup · Claude Code, Cursor & Strix</div>
+        <div class="setup-label">Guided setup · Claude Code, Cursor & Windsurf</div>
         <div class="terminal-pill">
           <div class="terminal-cmd">
             <span class="prompt-sym">$</span>
@@ -919,19 +911,19 @@ export function renderLandingPage(host, port) {
   <section class="metrics-bar">
     <div class="metric-col">
       <div class="metric-val">28</div>
-      <div class="metric-sub">Core operations · 100% Zero-dep</div>
+      <div class="metric-sub">Core operations · 100% Zero-dep ↗</div>
     </div>
     <div class="metric-col">
       <div class="metric-val">&lt; 0.05ms</div>
-      <div class="metric-sub">Execution latency · Instant bakes</div>
+      <div class="metric-sub">Execution latency · Instant bakes ↘</div>
     </div>
     <div class="metric-col">
       <div class="metric-val">100%</div>
-      <div class="metric-sub">ReDoS immune · Deterministic AST</div>
+      <div class="metric-sub">ReDoS immune · Deterministic AST ↗</div>
     </div>
     <div class="metric-col">
       <div class="metric-val">0</div>
-      <div class="metric-sub">Crash rate · 100 fuzz passes</div>
+      <div class="metric-sub">Crash rate · 100 fuzz passes ↗</div>
     </div>
   </section>
 

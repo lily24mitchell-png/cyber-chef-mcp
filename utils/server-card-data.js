@@ -1,7 +1,7 @@
 export const SERVER_CARD = {
   "serverInfo": {
     "name": "cyberchef-mcp",
-    "version": "1.0.15"
+    "version": "1.0.16"
   },
   "authentication": {
     "required": false
