@@ -2,6 +2,9 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { SSEServerTransport } from "@modelcontextprotocol/sdk/server/sse.js";
 import http from "node:http";
+import fs from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import crypto from "node:crypto";
 import { performance } from "node:perf_hooks";
 import { z } from "zod";
@@ -11,6 +14,9 @@ import { StrixHelper } from "./utils/strix-helper.js";
 import { Logger } from "./utils/logger.js";
 import { renderLandingPage } from "./utils/landing-page.js";
 import { SERVER_CARD } from "./utils/server-card-data.js";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Cryptographic constant-time comparison preventing timing attacks
 function secureCompare(a, b) {
@@ -62,7 +68,7 @@ async function timedTool(toolName, input, fn) {
 // Initialize CyberChef MCP Server
 const server = new McpServer({
   name: "cyberchef-mcp",
-  version: "1.0.7"
+  version: "1.0.8"
 });
 
 // Tool 1: Universal Recipe Runner (Bake)
@@ -438,6 +444,19 @@ async function main() {
       return;
     }
 
+    // Static Hero Artwork Asset
+    if (req.method === "GET" && (url.pathname === "/hero-art.jpg" || url.pathname === "/public/hero-art.jpg")) {
+      const imgPath = path.join(__dirname, "public", "hero-art.jpg");
+      if (fs.existsSync(imgPath)) {
+        res.writeHead(200, {
+          "Content-Type": "image/jpeg",
+          "Cache-Control": "public, max-age=604800, immutable"
+        });
+        fs.createReadStream(imgPath).pipe(res);
+        return;
+      }
+    }
+
     // Global Request Body Size Guard (5MB limit across all routes)
     const MAX_REQUEST_BYTES = 5 * 1024 * 1024;
     const contentLength = parseInt(req.headers["content-length"] || "0", 10);
@@ -493,7 +512,7 @@ async function main() {
       res.end(JSON.stringify({
         status: "healthy",
         name: "cyberchef-mcp",
-        version: "1.0.7",
+        version: "1.0.8",
         uptimeSeconds: Math.floor(process.uptime()),
         timestamp: new Date().toISOString()
       }));
