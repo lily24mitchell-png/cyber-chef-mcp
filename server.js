@@ -3,9 +3,12 @@ import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js"
 import { SSEServerTransport } from "@modelcontextprotocol/sdk/server/sse.js";
 import http from "node:http";
 import crypto from "node:crypto";
+import { performance } from "node:perf_hooks";
 import { z } from "zod";
 import { CyberChefEngine } from "./utils/cyberchef-runner.js";
 import { BuiltinChef } from "./utils/builtin-chef.js";
+import { StrixHelper } from "./utils/strix-helper.js";
+import { Logger } from "./utils/logger.js";
 import { SERVER_CARD } from "./utils/server-card-data.js";
 
 // Cryptographic constant-time comparison preventing timing attacks
@@ -32,10 +35,33 @@ setInterval(() => {
   }
 }, 5 * 60 * 1000).unref();
 
+// Helper to track and log execution duration of tool calls
+async function timedTool(toolName, input, fn) {
+  const start = performance.now();
+  try {
+    const res = await fn();
+    const durationMs = +(performance.now() - start).toFixed(3);
+    Logger.info("tool_executed", {
+      tool: toolName,
+      durationMs,
+      inputBytes: typeof input === "string" ? input.length : undefined
+    });
+    return res;
+  } catch (err) {
+    const durationMs = +(performance.now() - start).toFixed(3);
+    Logger.error("tool_failed", {
+      tool: toolName,
+      durationMs,
+      error: err.message
+    });
+    throw err;
+  }
+}
+
 // Initialize CyberChef MCP Server
 const server = new McpServer({
   name: "cyberchef-mcp",
-  version: "1.0.5"
+  version: "1.0.6"
 });
 
 // Tool 1: Universal Recipe Runner (Bake)
@@ -52,17 +78,19 @@ server.tool(
     ).describe("Ordered array of recipe steps to execute in sequence.")
   },
   async ({ input, recipe }) => {
-    try {
-      const result = CyberChefEngine.bake(input, recipe);
-      return {
-        content: [{ type: "text", text: JSON.stringify(result, null, 2) }]
-      };
-    } catch (err) {
-      return {
-        isError: true,
-        content: [{ type: "text", text: `CyberChef Bake Error: ${err.message}` }]
-      };
-    }
+    return timedTool("cyberchef_bake", input, async () => {
+      try {
+        const result = CyberChefEngine.bake(input, recipe);
+        return {
+          content: [{ type: "text", text: JSON.stringify(result, null, 2) }]
+        };
+      } catch (err) {
+        return {
+          isError: true,
+          content: [{ type: "text", text: `CyberChef Bake Error: ${err.message}` }]
+        };
+      }
+    });
   }
 );
 
@@ -74,10 +102,12 @@ server.tool(
     input: z.string().describe("The unknown or obfuscated string, token, or payload to inspect and analyze.")
   },
   async ({ input }) => {
-    const analysis = CyberChefEngine.magic(input);
-    return {
-      content: [{ type: "text", text: JSON.stringify(analysis, null, 2) }]
-    };
+    return timedTool("cyberchef_magic", input, async () => {
+      const analysis = CyberChefEngine.magic(input);
+      return {
+        content: [{ type: "text", text: JSON.stringify(analysis, null, 2) }]
+      };
+    });
   }
 );
 
@@ -89,10 +119,12 @@ server.tool(
     query: z.string().optional().describe("Optional search term to filter operations (e.g., 'base64', 'hex', 'hash', 'aes', 'xor', 'jwt', 'forensics').")
   },
   async ({ query = "" }) => {
-    const results = CyberChefEngine.searchHelp(query);
-    return {
-      content: [{ type: "text", text: JSON.stringify(results, null, 2) }]
-    };
+    return timedTool("cyberchef_help", query, async () => {
+      const results = CyberChefEngine.searchHelp(query);
+      return {
+        content: [{ type: "text", text: JSON.stringify(results, null, 2) }]
+      };
+    });
   }
 );
 
@@ -105,12 +137,14 @@ server.tool(
     urlSafe: z.boolean().optional().describe("Optional boolean. Set to true if input uses URL-safe Base64 ('-' and '_' without padding).")
   },
   async ({ input, urlSafe = false }) => {
-    try {
-      const output = BuiltinChef.decodeBase64(input, urlSafe);
-      return { content: [{ type: "text", text: JSON.stringify(output, null, 2) }] };
-    } catch (e) {
-      return { isError: true, content: [{ type: "text", text: `Base64 Decode Error: ${e.message}` }] };
-    }
+    return timedTool("cyberchef_from_base64", input, async () => {
+      try {
+        const output = BuiltinChef.decodeBase64(input, urlSafe);
+        return { content: [{ type: "text", text: JSON.stringify(output, null, 2) }] };
+      } catch (e) {
+        return { isError: true, content: [{ type: "text", text: `Base64 Decode Error: ${e.message}` }] };
+      }
+    });
   }
 );
 
@@ -123,8 +157,10 @@ server.tool(
     urlSafe: z.boolean().optional().describe("Optional boolean. Set to true to generate URL-safe Base64 (replaces '+' with '-' and '/' with '_', omits padding).")
   },
   async ({ input, urlSafe = false }) => {
-    const output = BuiltinChef.toBase64(input, urlSafe);
-    return { content: [{ type: "text", text: output }] };
+    return timedTool("cyberchef_to_base64", input, async () => {
+      const output = BuiltinChef.toBase64(input, urlSafe);
+      return { content: [{ type: "text", text: output }] };
+    });
   }
 );
 
@@ -137,12 +173,14 @@ server.tool(
     delimiter: z.enum(["None", "Space", "0x", "Comma"]).optional().describe("Optional delimiter between hex bytes. Allowed values: 'None' (default), 'Space', '0x', or 'Comma'.")
   },
   async ({ input, delimiter = "None" }) => {
-    try {
-      const output = BuiltinChef.decodeHex(input, delimiter);
-      return { content: [{ type: "text", text: JSON.stringify(output, null, 2) }] };
-    } catch (e) {
-      return { isError: true, content: [{ type: "text", text: `Hex Decode Error: ${e.message}` }] };
-    }
+    return timedTool("cyberchef_from_hex", input, async () => {
+      try {
+        const output = BuiltinChef.decodeHex(input, delimiter);
+        return { content: [{ type: "text", text: JSON.stringify(output, null, 2) }] };
+      } catch (e) {
+        return { isError: true, content: [{ type: "text", text: `Hex Decode Error: ${e.message}` }] };
+      }
+    });
   }
 );
 
@@ -155,8 +193,10 @@ server.tool(
     delimiter: z.enum(["None", "Space", "0x", "Comma"]).optional().describe("Optional delimiter between hex pairs. Allowed values: 'None' (default), 'Space', '0x', or 'Comma'.")
   },
   async ({ input, delimiter = "None" }) => {
-    const output = BuiltinChef.toHex(input, delimiter);
-    return { content: [{ type: "text", text: output }] };
+    return timedTool("cyberchef_to_hex", input, async () => {
+      const output = BuiltinChef.toHex(input, delimiter);
+      return { content: [{ type: "text", text: output }] };
+    });
   }
 );
 
@@ -168,8 +208,10 @@ server.tool(
     input: z.string().describe("The percent-encoded URL string or parameter to decode (e.g., '%41%64%6d%69%6e').")
   },
   async ({ input }) => {
-    const output = BuiltinChef.urlDecode(input);
-    return { content: [{ type: "text", text: output }] };
+    return timedTool("cyberchef_url_decode", input, async () => {
+      const output = BuiltinChef.urlDecode(input);
+      return { content: [{ type: "text", text: output }] };
+    });
   }
 );
 
@@ -182,8 +224,10 @@ server.tool(
     encodeAll: z.boolean().optional().describe("Optional boolean. If true, encodes all characters including alphanumerics into percent format. Default is false.")
   },
   async ({ input, encodeAll = false }) => {
-    const output = BuiltinChef.urlEncode(input, encodeAll);
-    return { content: [{ type: "text", text: output }] };
+    return timedTool("cyberchef_url_encode", input, async () => {
+      const output = BuiltinChef.urlEncode(input, encodeAll);
+      return { content: [{ type: "text", text: output }] };
+    });
   }
 );
 
@@ -196,8 +240,10 @@ server.tool(
     amount: z.number().optional().describe("Optional integer offset count for rotation. Default is 13 for standard ROT13.")
   },
   async ({ input, amount = 13 }) => {
-    const output = BuiltinChef.rot13(input, amount);
-    return { content: [{ type: "text", text: output }] };
+    return timedTool("cyberchef_rot13", input, async () => {
+      const output = BuiltinChef.rot13(input, amount);
+      return { content: [{ type: "text", text: output }] };
+    });
   }
 );
 
@@ -211,8 +257,10 @@ server.tool(
     keyFormat: z.enum(["UTF8", "Hex"]).optional().describe("Format of the key string: 'UTF8' (default) or 'Hex'.")
   },
   async ({ input, key, keyFormat = "UTF8" }) => {
-    const output = BuiltinChef.xor(input, key, keyFormat);
-    return { content: [{ type: "text", text: output }] };
+    return timedTool("cyberchef_xor", input, async () => {
+      const output = BuiltinChef.xor(input, key, keyFormat);
+      return { content: [{ type: "text", text: output }] };
+    });
   }
 );
 
@@ -224,8 +272,10 @@ server.tool(
     hash: z.string().describe("The hash digest or password hash string to inspect and classify (e.g., PHC string '$argon2id$...', bcrypt '$2b$...', or 32/64-char hex strings).")
   },
   async ({ hash }) => {
-    const info = BuiltinChef.analyseHash(hash);
-    return { content: [{ type: "text", text: JSON.stringify(info, null, 2) }] };
+    return timedTool("cyberchef_analyse_hash", hash, async () => {
+      const info = BuiltinChef.analyseHash(hash);
+      return { content: [{ type: "text", text: JSON.stringify(info, null, 2) }] };
+    });
   }
 );
 
@@ -237,7 +287,9 @@ server.tool(
     input: z.string().describe("The string or payload to hash using SHA-256.")
   },
   async ({ input }) => {
-    return { content: [{ type: "text", text: BuiltinChef.sha256(input) }] };
+    return timedTool("cyberchef_sha256", input, async () => {
+      return { content: [{ type: "text", text: BuiltinChef.sha256(input) }] };
+    });
   }
 );
 
@@ -249,8 +301,10 @@ server.tool(
     input: z.string().describe("The data string or payload representation to analyze for information density and randomness.")
   },
   async ({ input }) => {
-    const result = BuiltinChef.entropy(input);
-    return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
+    return timedTool("cyberchef_entropy", input, async () => {
+      const result = BuiltinChef.entropy(input);
+      return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
+    });
   }
 );
 
@@ -262,8 +316,10 @@ server.tool(
     token: z.string().describe("The complete encoded JSON Web Token in standard 'header.payload.signature' dot-separated format.")
   },
   async ({ token }) => {
-    const result = BuiltinChef.jwtDecode(token);
-    return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
+    return timedTool("cyberchef_jwt_decode", token, async () => {
+      const result = BuiltinChef.jwtDecode(token);
+      return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
+    });
   }
 );
 
@@ -275,7 +331,9 @@ server.tool(
     url: z.string().describe("The URL, domain, IP, email, or security log excerpt to defang.")
   },
   async ({ url }) => {
-    return { content: [{ type: "text", text: BuiltinChef.defangUrl(url) }] };
+    return timedTool("cyberchef_defang_url", url, async () => {
+      return { content: [{ type: "text", text: BuiltinChef.defangUrl(url) }] };
+    });
   }
 );
 
@@ -287,13 +345,35 @@ server.tool(
     text: z.string().describe("The unstructured text, security log, memory dump, or config file from which to extract DLP and forensic artifacts.")
   },
   async ({ text }) => {
-    const dlpResult = BuiltinChef.extractDlpEntities(text);
-    return {
-      content: [{
-        type: "text",
-        text: JSON.stringify(dlpResult, null, 2)
-      }]
-    };
+    return timedTool("cyberchef_extract_entities", text, async () => {
+      const dlpResult = BuiltinChef.extractDlpEntities(text);
+      return {
+        content: [{
+          type: "text",
+          text: JSON.stringify(dlpResult, null, 2)
+        }]
+      };
+    });
+  }
+);
+
+// Tool 18: Automated Agent Security Triage (Strix Pentesting Helper)
+server.tool(
+  "cyberchef_strix_triage",
+  "Automated one-shot security triage for autonomous AI agents (Strix, Claude, Cursor). In a single turn, checks an unknown or suspicious string for DLP/PII leaks, calculates alphabet-calibrated entropy, attempts magic recipe detection, and produces actionable severity findings and remediation steps.",
+  {
+    input: z.string().describe("The suspicious token, log excerpt, parameter, or unknown payload to triage.")
+  },
+  async ({ input }) => {
+    return timedTool("cyberchef_strix_triage", input, async () => {
+      const triage = StrixHelper.triage(input);
+      return {
+        content: [{
+          type: "text",
+          text: JSON.stringify(triage, null, 2)
+        }]
+      };
+    });
   }
 );
 
@@ -309,7 +389,7 @@ async function main() {
   if (!isHttp) {
     const transport = new StdioServerTransport();
     await server.connect(transport);
-    console.error("CyberChef MCP Server running on stdio transport.");
+    Logger.info("server_started", { transport: "stdio" });
     return;
   }
 
@@ -340,6 +420,7 @@ async function main() {
     } else {
       ipData.count++;
       if (ipData.count > MAX_REQUESTS_PER_WINDOW) {
+        Logger.warn("rate_limit_exceeded", { clientIp });
         res.writeHead(429, {
           "Content-Type": "application/json",
           "Retry-After": String(Math.ceil((ipData.windowStart + RATE_LIMIT_WINDOW_MS - now) / 1000))
@@ -390,8 +471,9 @@ async function main() {
   }
 }</pre>
 
-    <h3>Available Tools (17):</h3>
+    <h3>Available Tools (18):</h3>
     <ul>
+      <li><span>cyberchef_strix_triage</span> — Automated one-shot security triage (DLP, Entropy, Magic)</li>
       <li><span>cyberchef_magic</span> — Heuristic payload detection & recipe recommendation</li>
       <li><span>cyberchef_bake</span> — Multi-stage sequential transformation pipeline (28 ops)</li>
       <li><span>cyberchef_jwt_decode</span> — Inspect header, claims, and signature of JWTs</li>
@@ -415,6 +497,7 @@ async function main() {
     const MAX_REQUEST_BYTES = 5 * 1024 * 1024;
     const contentLength = parseInt(req.headers["content-length"] || "0", 10);
     if (contentLength > MAX_REQUEST_BYTES) {
+      Logger.warn("payload_too_large", { contentLength, clientIp });
       res.writeHead(413, { "Content-Type": "application/json" });
       res.end(JSON.stringify({ error: "Payload Too Large: Maximum allowed request size is 5MB" }));
       return;
@@ -425,6 +508,7 @@ async function main() {
     req.on("data", (chunk) => {
       receivedBytes += chunk.length;
       if (receivedBytes > MAX_REQUEST_BYTES) {
+        Logger.warn("payload_stream_exceeded", { receivedBytes, clientIp });
         res.writeHead(413, { "Content-Type": "application/json" });
         res.end(JSON.stringify({ error: "Payload Too Large: Request body exceeded 5MB limit" }));
         req.destroy();
@@ -434,10 +518,11 @@ async function main() {
     // API Key Verification (if MCP_API_KEY env var is configured)
     const requiredApiKey = process.env.MCP_API_KEY;
     if (requiredApiKey) {
-      const isPublicPath = url.pathname === "/" || url.pathname === "/health" || url.pathname === "/.well-known/mcp/server-card.json" || url.pathname === "/server-card.json";
+      const isPublicPath = url.pathname === "/" || url.pathname.startsWith("/health") || url.pathname === "/.well-known/mcp/server-card.json" || url.pathname === "/server-card.json";
       if (!isPublicPath) {
         // Enforce: Never accept API keys in query parameters (Tier 3, Item 8)
         if (url.searchParams.has("key")) {
+          Logger.warn("insecure_auth_attempt", { path: url.pathname, clientIp });
           res.writeHead(400, { "Content-Type": "application/json" });
           res.end(JSON.stringify({
             error: "Insecure Authentication: Passing API keys in query parameters is prohibited. Pass credentials via the 'x-api-key' or 'Authorization: Bearer <key>' HTTP header to prevent exposure in access logs and proxy history."
@@ -449,6 +534,7 @@ async function main() {
           (req.headers["authorization"]?.startsWith("Bearer ") ? req.headers["authorization"].slice(7).trim() : null);
 
         if (!headerKey || !secureCompare(headerKey, requiredApiKey)) {
+          Logger.warn("unauthorized_request", { path: url.pathname, clientIp });
           res.writeHead(401, { "Content-Type": "application/json" });
           res.end(JSON.stringify({ error: "Unauthorized: Invalid or missing API key. Provide via 'x-api-key' or 'Authorization: Bearer' header." }));
           return;
@@ -456,9 +542,28 @@ async function main() {
       }
     }
 
-    if (req.method === "GET" && url.pathname === "/health") {
+    // Health Liveness Probe (/health or /health/live)
+    if (req.method === "GET" && (url.pathname === "/health" || url.pathname === "/health/live")) {
       res.writeHead(200, { "Content-Type": "application/json" });
-      res.end(JSON.stringify({ status: "healthy", name: "cyberchef-mcp", version: "1.0.5" }));
+      res.end(JSON.stringify({
+        status: "healthy",
+        name: "cyberchef-mcp",
+        version: "1.0.6",
+        uptimeSeconds: Math.floor(process.uptime()),
+        timestamp: new Date().toISOString()
+      }));
+      return;
+    }
+
+    // Health Readiness Probe (/health/ready)
+    if (req.method === "GET" && url.pathname === "/health/ready") {
+      res.writeHead(200, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({
+        status: "ready",
+        memory: process.memoryUsage(),
+        activeSseSessions: sseTransports.size,
+        operationsCount: 28
+      }));
       return;
     }
 
@@ -471,8 +576,10 @@ async function main() {
     if (req.method === "GET" && url.pathname === "/sse") {
       const sseTransport = new SSEServerTransport("/message", res);
       sseTransports.set(sseTransport.sessionId, sseTransport);
+      Logger.info("sse_session_opened", { sessionId: sseTransport.sessionId, totalActive: sseTransports.size });
       res.on("close", () => {
         sseTransports.delete(sseTransport.sessionId);
+        Logger.info("sse_session_closed", { sessionId: sseTransport.sessionId, totalActive: sseTransports.size });
       });
       await server.connect(sseTransport);
       return;
@@ -499,12 +606,15 @@ async function main() {
   });
 
   httpServer.listen(port, "0.0.0.0", () => {
-    console.error(`CyberChef MCP Server running over HTTP/SSE on http://0.0.0.0:${port}`);
-    console.error(`SSE endpoint: http://0.0.0.0:${port}/sse`);
+    Logger.info("server_started", {
+      transport: "http/sse",
+      port,
+      sseUrl: `http://0.0.0.0:${port}/sse`
+    });
   });
 }
 
 main().catch((err) => {
-  console.error("Fatal error starting CyberChef MCP Server:", err);
+  Logger.error("fatal_server_error", { error: err.message, stack: err.stack });
   process.exit(1);
 });

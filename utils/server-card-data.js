@@ -1,7 +1,7 @@
 export const SERVER_CARD = {
   "serverInfo": {
     "name": "cyberchef-mcp",
-    "version": "1.0.5"
+    "version": "1.0.6"
   },
   "authentication": {
     "required": false
@@ -220,6 +220,17 @@ export const SERVER_CARD = {
           "text": { "type": "string", "description": "Unstructured text or log excerpt to scan" }
         },
         "required": ["text"]
+      }
+    },
+    {
+      "name": "cyberchef_strix_triage",
+      "description": "Automated one-shot security triage for autonomous AI agents (Strix, Claude, Cursor). Checks for DLP leaks, calculates calibrated entropy, detects encoding formats, and provides actionable findings.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "input": { "type": "string", "description": "Suspicious payload or token to triage" }
+        },
+        "required": ["input"]
       }
     }
   ]

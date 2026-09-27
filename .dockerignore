@@ -1,0 +1,10 @@
+node_modules/
+.git/
+.github/
+council-report-20260927.html
+council-transcript-20260927.md
+benchmark.js
+test*.js
+docs/
+*.pdf
+.npmignore

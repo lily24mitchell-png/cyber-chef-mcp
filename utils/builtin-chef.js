@@ -456,20 +456,24 @@ export const BuiltinChef = {
   },
 
   extractUrls(text) {
-    const urlRegex = /(?:https?|ftp|hxxps?):\/\/[^\s/$.?#].[^\s]*/gi;
-    const matches = String(text).match(urlRegex) || [];
+    const raw = String(text);
+    if (!raw.includes("://")) return [];
+    const urlRegex = /\b(?:https?|ftp|hxxps?):\/\/[^\s/$.?#].[^\s]*/gi;
+    const matches = raw.match(urlRegex) || [];
     return [...new Set(matches)];
   },
 
   extractEmails(text) {
-    const emailRegex = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/gi;
-    const matches = String(text).match(emailRegex) || [];
+    const raw = String(text);
+    if (!raw.includes("@")) return [];
+    const emailRegex = /\b[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}\b/gi;
+    const matches = raw.match(emailRegex) || [];
     return [...new Set(matches)];
   },
 
   extractIpAddresses(text) {
     const ipv4Regex = /\b(?:(?:25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9])\.){3}(?:25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9])\b/g;
-    const ipv6Regex = /(?:[0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}|(?:[0-9a-fA-F]{1,4}:){1,7}:|(?:[0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}|(?:[0-9a-fA-F]{1,4}:){1,5}(?::[0-9a-fA-F]{1,4}){1,2}|(?:[0-9a-fA-F]{1,4}:){1,4}(?::[0-9a-fA-F]{1,4}){1,3}|(?:[0-9a-fA-F]{1,4}:){1,3}(?::[0-9a-fA-F]{1,4}){1,4}|(?:[0-9a-fA-F]{1,4}:){1,2}(?::[0-9a-fA-F]{1,4}){1,5}|[0-9a-fA-F]{1,4}:(?:(?::[0-9a-fA-F]{1,4}){1,6})|:(?:(?::[0-9a-fA-F]{1,4}){1,7}|:)|fe80:(?::[0-9a-fA-F]{0,4}){0,4}%[0-9a-zA-Z]{1,}|::(?:ffff(?::0{1,4}){0,1}:){0,1}(?:(?:25[0-5]|(?:2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(?:25[0-5]|(?:2[0-4]|1{0,1}[0-9]){0,1}[0-9])|(?:[0-9a-fA-F]{1,4}:){1,4}:(?:(?:25[0-5]|(?:2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(?:25[0-5]|(?:2[0-4]|1{0,1}[0-9]){0,1}[0-9])/gi;
+    const ipv6Regex = /\b(?:[0-9a-fA-F]{1,4}:){2,7}[0-9a-fA-F]{1,4}\b|\b::(?:[0-9a-fA-F]{1,4}:){0,6}[0-9a-fA-F]{1,4}\b|\b[0-9a-fA-F]{1,4}::\b|::1\b/gi;
     const ipv4Matches = String(text).match(ipv4Regex) || [];
     const ipv6Matches = String(text).match(ipv6Regex) || [];
     return [...new Set([...ipv4Matches, ...ipv6Matches])];
@@ -538,7 +542,7 @@ export const BuiltinChef = {
     }
 
     // 4. International Bank Account Number (IBAN)
-    const ibanRegex = /\b[A-Z]{2}\d{2}[A-Z0-9]{4}\d{7}([A-Z0-9]?){0,16}\b/gi;
+    const ibanRegex = /\b[A-Z]{2}\d{2}[A-Z0-9]{4}\d{7}[A-Z0-9]{0,16}\b/gi;
     while ((m = ibanRegex.exec(raw)) !== null) {
       if (isValidIban(m[0])) {
         const preview = `${m[0].slice(0, 4)}****${m[0].slice(-4)}`;
@@ -562,7 +566,7 @@ export const BuiltinChef = {
     }
 
     // 7. IPv6 Addresses
-    const ipv6Regex = /(?:[0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}|(?:[0-9a-fA-F]{1,4}:){1,7}:|(?:[0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}|fe80:(?::[0-9a-fA-F]{0,4}){0,4}%[0-9a-zA-Z]{1,}|::(?:ffff(?::0{1,4}){0,1}:){0,1}(?:(?:25[0-5]|(?:2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(?:25[0-5]|(?:2[0-4]|1{0,1}[0-9]){0,1}[0-9])/gi;
+    const ipv6Regex = /\b(?:[0-9a-fA-F]{1,4}:){2,7}[0-9a-fA-F]{1,4}\b|\b::(?:[0-9a-fA-F]{1,4}:){0,6}[0-9a-fA-F]{1,4}\b|\b[0-9a-fA-F]{1,4}::\b|::1\b/gi;
     while ((m = ipv6Regex.exec(raw)) !== null) {
       const preview = `${m[0].slice(0, 9)}...[REDACTED_IPV6]`;
       matches.push({ type: "ipv6_address", offset: m.index, length: m[0].length, preview });
@@ -589,17 +593,21 @@ export const BuiltinChef = {
     }
 
     // 11. URLs
-    const urlRegex = /(?:https?|ftp|hxxps?):\/\/[^\s/$.?#].[^\s]*/gi;
-    while ((m = urlRegex.exec(raw)) !== null) {
-      matches.push({ type: "url", offset: m.index, length: m[0].length, preview: m[0].length > 40 ? m[0].slice(0, 37) + "..." : m[0] });
+    if (raw.includes("://")) {
+      const urlRegex = /\b(?:https?|ftp|hxxps?):\/\/[^\s/$.?#].[^\s]*/gi;
+      while ((m = urlRegex.exec(raw)) !== null) {
+        matches.push({ type: "url", offset: m.index, length: m[0].length, preview: m[0].length > 40 ? m[0].slice(0, 37) + "..." : m[0] });
+      }
     }
 
     // 12. Email Addresses
-    const emailRegex = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/gi;
-    while ((m = emailRegex.exec(raw)) !== null) {
-      const atIdx = m[0].indexOf("@");
-      const preview = m[0].charAt(0) + "***@" + m[0].slice(atIdx + 1);
-      matches.push({ type: "email", offset: m.index, length: m[0].length, preview });
+    if (raw.includes("@")) {
+      const emailRegex = /\b[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}\b/gi;
+      while ((m = emailRegex.exec(raw)) !== null) {
+        const atIdx = m[0].indexOf("@");
+        const preview = m[0].charAt(0) + "***@" + m[0].slice(atIdx + 1);
+        matches.push({ type: "email", offset: m.index, length: m[0].length, preview });
+      }
     }
 
     // Deduplicate matches sharing identical type & offset
