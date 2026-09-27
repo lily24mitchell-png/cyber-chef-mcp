@@ -178,22 +178,23 @@ export function renderLandingPage(host, port) {
       pointer-events: none;
       z-index: 1;
       overflow: hidden;
+      padding-right: 2rem;
     }
 
     .hero-art-img {
       width: 100%;
       height: 100%;
       object-fit: cover;
-      object-position: 72% center;
+      object-position: 58% center;
       filter: contrast(1.22) brightness(1.12) saturate(1.2);
       image-rendering: -webkit-optimize-contrast;
-      transform: scaleX(-1) scale(1.02);
+      transform: scaleX(-1) scale(0.97);
       animation: artZoom 24s ease-in-out infinite alternate;
     }
 
     @keyframes artZoom {
-      0% { transform: scaleX(-1) scale(1.0); }
-      100% { transform: scaleX(-1) scale(1.04); }
+      0% { transform: scaleX(-1) scale(0.95); }
+      100% { transform: scaleX(-1) scale(0.99); }
     }
 
     .hero-art-mask {
@@ -811,7 +812,7 @@ export function renderLandingPage(host, port) {
   <!-- Hero Section with Ink Art on the Right -->
   <section class="hero-container">
     <div class="hero-art-wrapper">
-      <img src="/hero-art.jpg?v=1.0.12" alt="Botanical Cyber Art" class="hero-art-img" loading="eager" />
+      <img src="/hero-art.jpg?v=1.0.13" alt="Botanical Cyber Art" class="hero-art-img" loading="eager" />
       <div class="hero-art-mask"></div>
     </div>
 

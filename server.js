@@ -68,7 +68,7 @@ async function timedTool(toolName, input, fn) {
 // Initialize CyberChef MCP Server
 const server = new McpServer({
   name: "cyberchef-mcp",
-  version: "1.0.12"
+  version: "1.0.13"
 });
 
 // Tool 1: Universal Recipe Runner (Bake)
@@ -515,7 +515,7 @@ async function main() {
       res.end(JSON.stringify({
         status: "healthy",
         name: "cyberchef-mcp",
-        version: "1.0.12",
+        version: "1.0.13",
         uptimeSeconds: Math.floor(process.uptime()),
         timestamp: new Date().toISOString()
       }));
