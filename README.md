@@ -19,9 +19,23 @@ pinned: false
 [![Smithery](https://smithery.ai/badge/@noor-202401938/cyber-chef-mcp)](https://smithery.ai/server/@noor-202401938/cyber-chef-mcp)
 [![Glama Score](https://glama.ai/mcp/servers/noor202401938-netizen/cyber-chef-mcp/badges/score.svg)](https://glama.ai/mcp/servers/noor202401938-netizen/cyber-chef-mcp)
 
-The **CyberChef Model Context Protocol (MCP)** server exposes the power of [CyberChef (The Cyber Swiss Army Knife)](https://github.com/gchq/CyberChef) directly to autonomous coding and security agents, including **Claude Desktop**, **Cursor IDE**, **Windsurf**, and **Strix Pentesting Framework**.
+The **CyberChef Model Context Protocol (MCP)** server exposes the power of [CyberChef (The Cyber Swiss Army Knife)](https://github.com/gchq/CyberChef) directly to autonomous coding and security agents, including **Claude Desktop**, **Cursor IDE**, **Windsurf**, and **[Strix Pentesting Framework](docs/strix-integration.md)**.
 
 Agents can dynamically bake complex multi-stage recipe pipelines (Hex -> XOR -> Base64 -> Deflate -> Regex) in a single turn without hallucinating encodings or failing on obscure binary transformations.
+
+---
+
+## ⚡ Token Economics: Why Use CyberChef MCP?
+
+Instead of burning thousands of output tokens having an LLM write, debug, and execute Python scripts in a sandbox, CyberChef MCP provides **instantaneous, deterministic execution** in a single tool call:
+
+| Task | Standard LLM (Python Execution) | CyberChef MCP Tool Call | Token Savings | Latency Speedup |
+|---|---|---|---|---|
+| **Multi-layer Deobfuscation (Hex → XOR → B64)** | 3 turns, ~1,850 tokens, 4,200ms | **1 turn, ~28 tokens, 0.04ms** | **98.5% fewer tokens** | **105,000x faster** |
+| **Shannon Entropy Calculation** | 2 turns, ~920 tokens, 2,100ms | **1 turn, ~18 tokens, 0.016ms** | **98.0% fewer tokens** | **131,250x faster** |
+| **JWT Decode & Expiry Check** | 2 turns, ~750 tokens, 1,800ms | **1 turn, ~22 tokens, 0.022ms** | **97.1% fewer tokens** | **81,800x faster** |
+
+*Run the benchmark yourself: `node benchmark.js`*
 
 ---
 

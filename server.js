@@ -370,9 +370,21 @@ async function main() {
       return;
     }
 
+    // Optional API Key Verification (if MCP_API_KEY env var is configured)
+    const requiredApiKey = process.env.MCP_API_KEY;
+    if (requiredApiKey) {
+      const providedKey = req.headers["x-api-key"] || url.searchParams.get("key");
+      const isPublicPath = url.pathname === "/" || url.pathname === "/health" || url.pathname === "/.well-known/mcp/server-card.json" || url.pathname === "/server-card.json";
+      if (!isPublicPath && providedKey !== requiredApiKey) {
+        res.writeHead(401, { "Content-Type": "application/json" });
+        res.end(JSON.stringify({ error: "Unauthorized: Invalid or missing x-api-key header or ?key= parameter" }));
+        return;
+      }
+    }
+
     if (req.method === "GET" && url.pathname === "/health") {
       res.writeHead(200, { "Content-Type": "application/json" });
-      res.end(JSON.stringify({ status: "healthy", name: "cyberchef-mcp", version: "1.0.2" }));
+      res.end(JSON.stringify({ status: "healthy", name: "cyberchef-mcp", version: "1.0.3" }));
       return;
     }
 
@@ -389,6 +401,14 @@ async function main() {
     }
 
     if (req.method === "POST" && url.pathname === "/message") {
+      const MAX_PAYLOAD_BYTES = 5 * 1024 * 1024; // 5MB guard
+      const contentLength = parseInt(req.headers["content-length"] || "0", 10);
+      if (contentLength > MAX_PAYLOAD_BYTES) {
+        res.writeHead(413, { "Content-Type": "application/json" });
+        res.end(JSON.stringify({ error: "Payload Too Large: Maximum allowed message size is 5MB" }));
+        return;
+      }
+
       if (sseTransport) {
         await sseTransport.handlePostMessage(req, res);
       } else {

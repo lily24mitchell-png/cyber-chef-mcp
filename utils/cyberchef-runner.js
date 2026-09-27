@@ -1,4 +1,4 @@
-﻿import crypto from "crypto";
+import crypto from "crypto";
 import { BuiltinChef } from "./builtin-chef.js";
 
 /**
@@ -39,8 +39,18 @@ export class CyberChefEngine {
   static bake(input, recipe = []) {
     let current = String(input);
     const stepsLog = [];
+    const startTime = Date.now();
+    const MAX_BAKE_TIME_MS = 5000;
+    const MAX_OUTPUT_BYTES = 10 * 1024 * 1024; // 10MB limit
 
     for (const step of recipe) {
+      if (Date.now() - startTime > MAX_BAKE_TIME_MS) {
+        throw new Error(`CyberChef bake execution timed out after ${MAX_BAKE_TIME_MS}ms. Possible ReDoS or infinite recipe loop.`);
+      }
+      if (current.length > MAX_OUTPUT_BYTES) {
+        throw new Error(`Intermediate transformation output exceeded ${MAX_OUTPUT_BYTES / (1024 * 1024)}MB memory safety limit.`);
+      }
+
       const opName = (step.op || step.name || "").trim().toLowerCase();
       const args = step.args || [];
       const beforeSample = current.slice(0, 40);
