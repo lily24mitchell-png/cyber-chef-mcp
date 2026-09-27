@@ -173,7 +173,7 @@ export function renderLandingPage(host, port) {
       position: absolute;
       top: 0;
       right: 0;
-      width: 65%;
+      width: 58%;
       height: 100%;
       pointer-events: none;
       z-index: 1;
@@ -187,13 +187,14 @@ export function renderLandingPage(host, port) {
       object-position: right center;
       filter: contrast(1.22) brightness(1.08) saturate(1.18);
       image-rendering: -webkit-optimize-contrast;
-      transform: scale(1.02);
+      transform-origin: right center;
+      transform: scale(0.88);
       animation: artZoom 24s ease-in-out infinite alternate;
     }
 
     @keyframes artZoom {
-      0% { transform: scale(1.0); }
-      100% { transform: scale(1.03); }
+      0% { transform: scale(0.88); }
+      100% { transform: scale(0.92); }
     }
 
     .hero-art-mask {
@@ -226,6 +227,20 @@ export function renderLandingPage(host, port) {
       letter-spacing: -0.035em;
       color: #FFFFFF;
       margin-bottom: 1.5rem;
+    }
+
+    .hero-title .highlight-peach {
+      background: linear-gradient(135deg, #FFFFFF 0%, #F5D0BD 50%, #F5A376 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      display: inline-block;
+    }
+
+    .hero-title .highlight-cyan {
+      background: linear-gradient(135deg, #E0F2FE 0%, #38BDF8 60%, #818CF8 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      display: inline-block;
     }
 
     .hero-subtitle {
@@ -811,7 +826,7 @@ export function renderLandingPage(host, port) {
   <!-- Hero Section with Ink Art on the Right -->
   <section class="hero-container">
     <div class="hero-art-wrapper">
-      <img src="/hero-art.jpg?v=1.0.14" alt="Botanical Cyber Art" class="hero-art-img" loading="eager" />
+      <img src="/hero-art.jpg?v=1.0.15" alt="Botanical Cyber Art" class="hero-art-img" loading="eager" />
       <div class="hero-art-mask"></div>
     </div>
 
@@ -819,8 +834,8 @@ export function renderLandingPage(host, port) {
       <div class="hero-eyebrow">Deterministic Cryptography & Payload Forensics</div>
       
       <h1 class="hero-title">
-        The cryptographic engine<br>
-        for autonomous agents.
+        The <span class="highlight-peach">cryptographic engine</span><br>
+        for <span class="highlight-cyan">autonomous agents.</span>
       </h1>
 
       <p class="hero-subtitle">
