@@ -1,8 +1,8 @@
-import crypto from "crypto";
 import { BuiltinChef } from "./builtin-chef.js";
 
 /**
  * Operations metadata catalog (representing CyberChef's operational vocabulary)
+ * Exactly 28 core operations implemented with zero external dependencies.
  */
 export const OPERATIONS_CATALOG = [
   { name: "From Base64", category: "Data format", description: "Decode Base64 encoded data to plain string" },
@@ -15,7 +15,7 @@ export const OPERATIONS_CATALOG = [
   { name: "ROT13", category: "Ciphers", description: "Rotates letters by 13 positions (or custom amount)" },
   { name: "XOR", category: "Ciphers", description: "Applies bitwise XOR against a secret string or key" },
   { name: "AES Decrypt", category: "Ciphers", description: "Decrypt AES ciphertext using key and IV" },
-  { name: "AES Encrypt", category: "Ciphers", description: "Encrypt plaintext using AES (CBC/ECB/GCM)" },
+  { name: "AES Encrypt", category: "Ciphers", description: "Encrypt plaintext using AES (CBC/ECB)" },
   { name: "MD5", category: "Hashing", description: "Generates 128-bit MD5 message digest" },
   { name: "SHA1", category: "Hashing", description: "Generates 160-bit SHA-1 digest" },
   { name: "SHA256", category: "Hashing", description: "Generates 256-bit SHA-2 cryptographic hash" },
@@ -90,6 +90,9 @@ export class CyberChefEngine {
         case "xor":
           current = BuiltinChef.xor(current, args[0] || "key", args[1] || "UTF8");
           break;
+        case "aes encrypt":
+          current = BuiltinChef.aesEncrypt(current, args[0] || "", args[1] || "", args[2] || "CBC");
+          break;
         case "aes decrypt":
           current = BuiltinChef.aesDecrypt(current, args[0] || "", args[1] || "", args[2] || "CBC");
           break;
@@ -137,6 +140,18 @@ export class CyberChefEngine {
             current = JSON.stringify(JSON.parse(current), null, 2);
           } catch {}
           break;
+        case "regular expression": {
+          const pattern = args[0] || "";
+          const flags = args[1] !== undefined ? args[1] : "g";
+          try {
+            const rx = new RegExp(pattern, flags);
+            const matches = current.match(rx) || [];
+            current = matches.join("\n");
+          } catch (err) {
+            current = `[Regex Error: ${err.message}]`;
+          }
+          break;
+        }
         case "reverse":
           current = current.split("").reverse().join("");
           break;

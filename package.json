@@ -1,6 +1,6 @@
 {
   "name": "@noorfatima123456/cyber-chef-mcp",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "Model Context Protocol (MCP) Server with 28 core CyberChef data transformations, ciphers, and payload deobfuscation for AI Agents (Claude, Cursor, Windsurf, Strix).",
   "main": "server.js",
   "bin": {
@@ -13,12 +13,8 @@
     "utils",
     ".well-known",
     "test.js",
-    "benchmark.js",
-    "docs",
     "README.md",
-    "LICENSE",
-    "glama.json",
-    "smithery.yaml"
+    "LICENSE"
   ],
   "engines": {
     "node": ">=18.0.0"
@@ -37,7 +33,9 @@
     "agentic-ai",
     "strix",
     "pentesting",
-    "deobfuscation"
+    "deobfuscation",
+    "dlp",
+    "entropy"
   ],
   "author": "Noor Fatima",
   "license": "Apache-2.0",

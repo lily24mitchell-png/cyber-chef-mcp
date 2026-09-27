@@ -19,7 +19,7 @@ pinned: false
 [![Smithery](https://smithery.ai/badge/@noor-202401938/cyber-chef-mcp)](https://smithery.ai/server/@noor-202401938/cyber-chef-mcp)
 [![Glama Score](https://glama.ai/mcp/servers/noor202401938-netizen/cyber-chef-mcp/badges/score.svg)](https://glama.ai/mcp/servers/noor202401938-netizen/cyber-chef-mcp)
 
-The **CyberChef Model Context Protocol (MCP)** server provides 28 well-tested, zero-dependency core CyberChef operations directly to autonomous coding and security agents, including **Claude Desktop**, **Cursor IDE**, **Windsurf**, and **[Strix Pentesting Framework](docs/strix-integration.md)**.
+The **CyberChef Model Context Protocol (MCP)** server provides 28 rock-solid, zero-dependency core CyberChef operations directly to autonomous coding and security agents, including **Claude Desktop**, **Cursor IDE**, **Windsurf**, and **[Strix Pentesting Framework](docs/strix-integration.md)**.
 
 Agents can dynamically bake complex multi-stage recipe pipelines (Hex -> XOR -> Base64 -> Deflate -> Regex) in a single turn without hallucinating encodings or failing on obscure binary transformations.
 
@@ -39,18 +39,19 @@ Instead of burning thousands of output tokens having an LLM write, debug, and ex
 
 ---
 
-## 🚀 Features
+## 🚀 Features & Capabilities (28 Core Operations)
 
-- **⚡ Native Recipe Execution (`cyberchef_bake`)**: Chain any sequence of 28 operations with arbitrary parameters with ReDoS & memory guards.
+- **⚡ Native Recipe Execution (`cyberchef_bake`)**: Chain sequences across 28 operations with 5000ms timeout and 10MB memory safety guards.
 - **🪄 Magic Mode (`cyberchef_magic`)**: Automatically detect and deobfuscate unknown payloads without prior knowledge of the encoding scheme.
-- **🛡️ Specialized Cybersecurity Primitives**:
-  - `cyberchef_entropy`: Alphabet-calibrated Shannon entropy (Hex max 4.0, Base64 max 6.0, Raw max 8.0) reporting saturation and totalBits to accurately classify CSPRNG tokens vs plaintext.
+- **🛡️ Enterprise Forensics & Security Primitives**:
+  - `cyberchef_entropy`: Representation-calibrated Shannon entropy (Hex max 4.0 bits/char, Base64 max 6.0 bits/char, Raw max 8.0 bits/char). Reports `bitsPerChar`, `maxForAlphabet`, `normalizedRatio`, and `totalBits` to prevent false confidence on encoded ciphertext.
   - `cyberchef_analyse_hash`: Modern password hash recognition (Argon2id/i/d, scrypt, PBKDF2) with OWASP parameter audits, full bcrypt prefixes ($2$, $2a$, $2b$, $2x$, $2y$), and ranked hex confidence.
-  - `cyberchef_jwt_decode`: Parse header, claims, and signature with Unix expiry conversions.
-  - `cyberchef_defang_url`: Sanitize malicious URLs and IPs (`hxxps[://]`, `192[.]168[.]1[.]1`) before safe display.
-  - `cyberchef_extract_entities`: Forensic extraction of URLs, emails, and dual-stack IPv4 and IPv6 addresses.
-  - `cyberchef_xor` / `cyberchef_rot13`: Bitwise encryption and Caesar rotation ciphers.
-  - `cyberchef_from_base64` / `cyberchef_to_base64`, `cyberchef_from_hex` / `cyberchef_to_hex`, `cyberchef_url_decode` / `cyberchef_url_encode`.
+  - `cyberchef_extract_entities`: Enterprise DLP scanner. Extracts and redacts: Credit Cards (with Luhn check), US SSN, India PAN, IBAN, E.164 phone numbers, strict dual-stack IPv4 (validating 0-255 octets; rejects 999.999.999.999) and IPv6, AWS access keys, JWTs, private keys, URLs, and emails with offsets and masked previews.
+  - `cyberchef_defang_url`: Scoped sanitization for URLs (host defanged, path and query parameters preserved), standalone IPv4 (`192[.]168[.]1[.]1`), and emails (`admin[at]corp[.]com`).
+  - `cyberchef_from_base64` / `cyberchef_from_hex`: Structured output `{ utf8, hex, isPrintable, byteLength }` preventing undecodable mojibake on binary ciphertext and TOTP secrets.
+  - `cyberchef_jwt_decode`: Parse Jose header, claims, and signature with Unix expiry conversions.
+  - `cyberchef_xor` / `cyberchef_rot13`: Bitwise binary-safe encryption and Caesar rotation ciphers.
+  - `cyberchef_to_base64` / `cyberchef_to_hex`, `cyberchef_url_decode` / `cyberchef_url_encode`, `cyberchef_sha256`.
 - **📚 Interactive Catalog (`cyberchef_help`)**: Allows agents to introspect available operations and parameter schemas dynamically on demand.
 
 ---
@@ -84,6 +85,7 @@ npx @noorfatima123456/cyber-chef-mcp
 git clone https://github.com/noor202401938-netizen/cyber-chef-mcp.git
 cd cyber-chef-mcp
 npm install
+npm test
 npm start
 ```
 
@@ -142,21 +144,27 @@ Add to `~/.strix/mcp-servers.json` (or pass via `--mcp-config`):
 
 ---
 
-## 🛠️ Available MCP Tools
+## 🛠️ Available MCP Tools (17 Primary Tools)
 
 | Tool Name | Parameters | Description |
 |---|---|---|
-| `cyberchef_bake` | `input` (string), `recipe` (array of op objects) | Run multi-stage pipeline recipes (e.g. Base64 -> XOR -> Gunzip) |
-| `cyberchef_magic` | `input` (string), `depth` (number, default 3) | Automatically bruteforces and decodes nested obfuscated data |
-| `jwt_decode` | `token` (string) | Decodes JWT header, payload, and formats expiry timestamps |
-| `entropy_calc` | `input` (string) | Calculates Shannon entropy (0.0 to 8.0) to identify encrypted payloads |
-| `defang_url` | `url` (string) | Neutralizes malicious URLs/IPs for safe reporting |
-| `from_base64` | `input` (string) | Decodes base64 strings |
-| `to_base64` | `input` (string) | Encodes string to base64 |
-| `from_hex` | `input` (string) | Converts hexadecimal sequences to plaintext |
-| `to_hex` | `input` (string) | Converts plaintext string to hex |
-| `url_decode` | `input` (string) | Decodes percent-encoded URL parameters |
-| `cyberchef_help` | `query` (optional string) | Searches and lists available operations and usage examples |
+| `cyberchef_bake` | `input` (string), `recipe` (array of op objects) | Run multi-stage sequential pipeline recipes across 28 core operations |
+| `cyberchef_magic` | `input` (string) | Automatically inspects and suggests recipes for unknown payloads |
+| `cyberchef_jwt_decode` | `token` (string) | Decodes JWT header, claims, and formats expiration dates |
+| `cyberchef_entropy` | `input` (string) | Representation-calibrated Shannon entropy (Hex max 4.0, Base64 max 6.0, Raw max 8.0) |
+| `cyberchef_analyse_hash` | `hash` (string) | Classifies modern PHC hashes (Argon2/scrypt/PBKDF2/bcrypt) with OWASP checks & ranked hex |
+| `cyberchef_extract_entities` | `text` (string) | Enterprise DLP scanner (Credit Cards with Luhn, SSN, PAN, IBAN, E.164, strict IPv4/IPv6, AWS, JWT) |
+| `cyberchef_defang_url` | `url` (string) | Scoped URL/host/IP/email sanitization preserving query/path decimals |
+| `cyberchef_from_base64` | `input` (string), `urlSafe` (bool) | Decodes Base64 with structured output `{ utf8, hex, isPrintable, byteLength }` |
+| `cyberchef_to_base64` | `input` (string), `urlSafe` (bool) | Encodes string to Base64 (standard or URL-safe) |
+| `cyberchef_from_hex` | `input` (string), `delimiter` (string) | Converts hexadecimal sequences to structured output |
+| `cyberchef_to_hex` | `input` (string), `delimiter` (string) | Converts string to hexadecimal byte representation |
+| `cyberchef_url_decode` | `input` (string) | Decodes percent-encoded URL parameters |
+| `cyberchef_url_encode` | `input` (string), `encodeAll` (bool) | Encodes characters to percent-encoded format |
+| `cyberchef_rot13` | `input` (string), `amount` (number) | Applies ROT13 or custom Caesar rotation shift |
+| `cyberchef_xor` | `input` (string), `key` (string), `keyFormat` (string) | Bitwise XOR cipher preserving binary data without mojibake |
+| `cyberchef_sha256` | `input` (string) | Generates SHA-256 cryptographic checksum |
+| `cyberchef_help` | `query` (optional string) | Searches and lists available operations from the 28-operation catalog |
 
 ---
 
@@ -167,18 +175,18 @@ Add to `~/.strix/mcp-servers.json` (or pass via `--mcp-config`):
 > *"The application log caught query `?id=JyBVTklPTiBTRUxFQ1QgdXNlcm5hbWUsIHBhc3N3b3JkIEZST00gdXNlcnMtLQ==`. What is this payload doing?"*
 
 **Agent Action**:
-1. Calls `from_base64` on the payload.
-2. Receives: `' UNION SELECT username, password FROM users--`.
+1. Calls `cyberchef_from_base64` on the payload.
+2. Receives: `{ "utf8": "' UNION SELECT username, password FROM users--", "isPrintable": true }`.
 3. Analyzes business risk: **High risk of credential database dump via SQL Injection**.
 
-### Scenario 2: High Entropy Shellcode Detection
+### Scenario 2: High Entropy Token Classification
 **Prompt**:
-> *"Analyze this suspicious payload string found in an uploaded avatar file."*
+> *"Analyze this suspicious Base64 string: `Khn583yd1-tfLW7dHYqBQlxHdxtM37bv7Xtnh5DK5Gc`."*
 
 **Agent Action**:
-1. Calls `entropy_calc`. Returns `7.82` (critical anomaly > 7.2).
-2. Calls `cyberchef_magic` with depth 3.
-3. Unpacks XOR key `0x5A` + Gzip compression -> reveals obfuscated reverse shell binary.
+1. Calls `cyberchef_entropy`.
+2. Returns: `{ alphabet: "base64", maxForAlphabet: 6, bitsPerChar: 4.70, normalizedRatio: 0.784, verdict: "high_entropy" }`.
+3. Concludes with mathematical certainty that the token is high-entropy encoded ciphertext or a CSPRNG secret.
 
 ---
 

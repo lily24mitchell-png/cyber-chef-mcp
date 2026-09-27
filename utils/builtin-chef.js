@@ -4,18 +4,46 @@ import crypto from "crypto";
  * Builtin high-performance security primitives matching CyberChef operations
  */
 export const BuiltinChef = {
-  // Encodings
+  // Encodings with structured return option
   fromBase64(input, urlSafe = false) {
     let str = String(input).trim();
     if (urlSafe) {
       str = str.replace(/-/g, "+").replace(/_/g, "/");
       while (str.length % 4) str += "=";
     }
-    return Buffer.from(str, "base64").toString("utf8");
+    const buf = Buffer.from(str, "base64");
+    return buf.toString("latin1");
+  },
+
+  decodeBase64(input, urlSafe = false) {
+    let str = String(input).trim();
+    if (urlSafe) {
+      str = str.replace(/-/g, "+").replace(/_/g, "/");
+      while (str.length % 4) str += "=";
+    }
+    const buf = Buffer.from(str, "base64");
+    const hex = buf.toString("hex");
+    const byteLength = buf.length;
+    let isPrintable = true;
+    for (let i = 0; i < buf.length; i++) {
+      const b = buf[i];
+      if ((b < 32 && b !== 9 && b !== 10 && b !== 13) || b === 127) {
+        isPrintable = false;
+        break;
+      }
+    }
+    const utf8Str = buf.toString("utf8");
+    return {
+      utf8: isPrintable ? utf8Str : (utf8Str.includes("\uFFFD") ? `[Binary data: ${byteLength} bytes]` : utf8Str),
+      hex,
+      isPrintable,
+      byteLength
+    };
   },
 
   toBase64(input, urlSafe = false) {
-    const b64 = Buffer.from(String(input), "utf8").toString("base64");
+    const buf = Buffer.isBuffer(input) ? input : Buffer.from(String(input), "latin1");
+    const b64 = buf.toString("base64");
     if (urlSafe) {
       return b64.replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
     }
@@ -26,11 +54,35 @@ export const BuiltinChef = {
     let str = String(input);
     if (delimiter === "0x") str = str.replace(/0x/gi, "");
     str = str.replace(/[^0-9a-fA-F]/g, "");
-    return Buffer.from(str, "hex").toString("utf8");
+    return Buffer.from(str, "hex").toString("latin1");
+  },
+
+  decodeHex(input, delimiter = "None") {
+    let str = String(input);
+    if (delimiter === "0x") str = str.replace(/0x/gi, "");
+    str = str.replace(/[^0-9a-fA-F]/g, "");
+    const buf = Buffer.from(str, "hex");
+    const hex = buf.toString("hex");
+    const byteLength = buf.length;
+    let isPrintable = true;
+    for (let i = 0; i < buf.length; i++) {
+      const b = buf[i];
+      if ((b < 32 && b !== 9 && b !== 10 && b !== 13) || b === 127) {
+        isPrintable = false;
+        break;
+      }
+    }
+    const utf8Str = buf.toString("utf8");
+    return {
+      utf8: isPrintable ? utf8Str : (utf8Str.includes("\uFFFD") ? `[Binary data: ${byteLength} bytes]` : utf8Str),
+      hex,
+      isPrintable,
+      byteLength
+    };
   },
 
   toHex(input, delimiter = "None") {
-    const buf = Buffer.from(String(input), "utf8");
+    const buf = Buffer.isBuffer(input) ? input : Buffer.from(String(input), "latin1");
     if (delimiter === "Space") {
       return Array.from(buf).map(b => b.toString(16).padStart(2, "0")).join(" ");
     }
@@ -68,10 +120,10 @@ export const BuiltinChef = {
     });
   },
 
-  xor(input, key = "hisaar", keyFormat = "UTF8") {
-    const inBuf = Buffer.from(String(input), "utf8");
+  xor(input, key = "key", keyFormat = "UTF8") {
+    const inBuf = Buffer.isBuffer(input) ? input : Buffer.from(String(input), "latin1");
     const keyBuf = keyFormat === "Hex" ? Buffer.from(key.replace(/[^0-9a-fA-F]/g, ""), "hex") : Buffer.from(key, "utf8");
-    if (keyBuf.length === 0) return inBuf.toString("utf8");
+    if (keyBuf.length === 0) return inBuf.toString("latin1");
 
     const outBuf = Buffer.alloc(inBuf.length);
     for (let i = 0; i < inBuf.length; i++) {
@@ -94,28 +146,44 @@ export const BuiltinChef = {
     }
   },
 
+  aesEncrypt(input, key, iv = "", mode = "CBC") {
+    try {
+      const keyBuf = Buffer.isBuffer(key) ? key : Buffer.from(key, "hex");
+      const ivBuf = iv ? (Buffer.isBuffer(iv) ? iv : Buffer.from(iv, "hex")) : Buffer.alloc(16, 0);
+      const cipherName = `aes-${keyBuf.length * 8}-${mode.toLowerCase()}`;
+      const cipher = crypto.createCipheriv(cipherName, keyBuf, ivBuf);
+      let encrypted = cipher.update(Buffer.from(String(input), "utf8"));
+      encrypted = Buffer.concat([encrypted, cipher.final()]);
+      return encrypted.toString("hex");
+    } catch (err) {
+      return `[AES Encrypt Error: ${err.message}]`;
+    }
+  },
+
   // Hashing
   md5(input) {
-    return crypto.createHash("md5").update(String(input)).digest("hex");
+    return crypto.createHash("md5").update(Buffer.from(String(input), "latin1")).digest("hex");
   },
 
   sha1(input) {
-    return crypto.createHash("sha1").update(String(input)).digest("hex");
+    return crypto.createHash("sha1").update(Buffer.from(String(input), "latin1")).digest("hex");
   },
 
   sha256(input) {
-    return crypto.createHash("sha256").update(String(input)).digest("hex");
+    return crypto.createHash("sha256").update(Buffer.from(String(input), "latin1")).digest("hex");
   },
 
   sha512(input) {
-    return crypto.createHash("sha512").update(String(input)).digest("hex");
+    return crypto.createHash("sha512").update(Buffer.from(String(input), "latin1")).digest("hex");
   },
 
   analyseHash(hash) {
     const raw = String(hash).trim();
-    // 1. PHC string detection: $argon2id$v=19$m=19456,t=2,p=1$salt$hash, scrypt, pbkdf2
+
+    // 1. PHC string detection: $argon2id$, $argon2i$, $argon2d$, $scrypt$, $pbkdf2$
     const phc = /^\$(argon2(?:id|i|d)|scrypt|pbkdf2(?:-sha\d+)?)\$/i.exec(raw);
     if (phc) {
+      const algorithm = phc[1].toLowerCase();
       const fields = raw.split("$").filter(Boolean);
       const params = {};
       for (const f of fields) {
@@ -130,14 +198,32 @@ export const BuiltinChef = {
         }
       }
       const warnings = [];
-      if (params.m && params.m < 19456) {
-        warnings.push("memory cost below OWASP minimum of 19 MiB (19456 KiB)");
+      if (algorithm.startsWith("argon2")) {
+        if (params.m !== undefined && params.m < 19456) {
+          warnings.push("Memory cost (m) below OWASP minimum of 19456 KiB (19 MiB)");
+        }
+        if (params.t !== undefined && params.t < 2) {
+          warnings.push("Iteration count (t) below OWASP recommendation (t >= 2)");
+        }
+        if (params.p !== undefined && params.p < 1) {
+          warnings.push("Parallelism (p) must be at least 1");
+        }
+      } else if (algorithm === "scrypt") {
+        const N = params.N || (params.ln !== undefined ? 2 ** params.ln : undefined);
+        if (N !== undefined && N < 65536) {
+          warnings.push("CPU/memory cost (N) below OWASP recommendation of 65536 (or ln=16)");
+        }
+        if (params.r !== undefined && params.r < 8) {
+          warnings.push("Block size (r) below recommendation of 8");
+        }
+      } else if (algorithm.startsWith("pbkdf2")) {
+        if (params.i !== undefined && params.i < 210000) {
+          warnings.push("PBKDF2 iteration count (i) below OWASP minimum of 210,000");
+        }
       }
-      if (params.t && params.t < 2) {
-        warnings.push("iteration count below OWASP recommendation (t >= 2)");
-      }
+
       return {
-        algorithm: phc[1].toLowerCase(),
+        algorithm,
         params,
         confidence: "certain",
         probableTypes: [phc[1]],
@@ -145,19 +231,29 @@ export const BuiltinChef = {
       };
     }
 
-    const h = raw.toLowerCase();
-    const len = h.length;
-    const candidates = [];
-
     // 2. Bcrypt prefix check: $2$, $2a$, $2b$, $2x$, $2y$
-    if (/^\$2[abxy]?\$/i.test(raw)) {
+    const bcryptMatch = /^\$(2[abxy]?)\$(\d{2})\$/i.exec(raw);
+    if (bcryptMatch) {
+      const cost = parseInt(bcryptMatch[2], 10);
+      const warnings = [];
+      if (cost < 10) {
+        warnings.push(`Bcrypt cost factor (${cost}) below OWASP minimum of 10`);
+      }
       return {
         algorithm: "bcrypt",
+        variant: `$${bcryptMatch[1]}$`,
+        cost,
         probableTypes: ["Bcrypt"],
         confidence: "certain",
-        length: len
+        warnings,
+        length: raw.length
       };
     }
+
+    const h = raw.toLowerCase();
+    const len = h.length;
+
+    // 3. Linux shadow hashes
     if (h.startsWith("$6$")) {
       return {
         algorithm: "sha512crypt",
@@ -175,33 +271,76 @@ export const BuiltinChef = {
       };
     }
 
-    // 3. Hex digests with ranked confidence
+    // 4. Hex digests with ranked confidence
     if (/^[0-9a-f]+$/i.test(h)) {
       if (len === 32) {
         return {
           lengthHex: 32,
           probableTypes: ["MD5", "NTLM", "MD4"],
           rankedConfidence: [
-            { type: "MD5", confidence: "high", reason: "Standard 128-bit hex digest" },
-            { type: "NTLM", confidence: "medium", reason: "Windows NTLM password hash" },
-            { type: "MD4", confidence: "low", reason: "Legacy hash algorithm" }
+            { type: "MD5", confidence: "high", reason: "Standard 128-bit RFC 1321 hex digest" },
+            { type: "NTLM", confidence: "medium", reason: "Windows NT LanMan password hash (MD4-derived)" },
+            { type: "MD4", confidence: "low", reason: "Legacy 128-bit RFC 1320 digest" }
           ]
         };
-      } else if (len === 40) candidates.push("SHA-1", "RIPEMD-160");
-      else if (len === 56) candidates.push("SHA-224", "SHA3-224");
-      else if (len === 64) candidates.push("SHA-256", "SHA3-256", "BLAKE2s-256");
-      else if (len === 96) candidates.push("SHA-384", "SHA3-384");
-      else if (len === 128) candidates.push("SHA-512", "SHA3-512", "BLAKE2b-512");
+      } else if (len === 40) {
+        return {
+          lengthHex: 40,
+          probableTypes: ["SHA-1", "RIPEMD-160"],
+          rankedConfidence: [
+            { type: "SHA-1", confidence: "high", reason: "Standard 160-bit SHA-1 digest" },
+            { type: "RIPEMD-160", confidence: "medium", reason: "160-bit European cryptographic hash" }
+          ]
+        };
+      } else if (len === 56) {
+        return {
+          lengthHex: 56,
+          probableTypes: ["SHA-224", "SHA3-224"],
+          rankedConfidence: [
+            { type: "SHA-224", confidence: "high", reason: "224-bit truncated SHA-2" },
+            { type: "SHA3-224", confidence: "medium", reason: "224-bit Keccak/SHA-3 digest" }
+          ]
+        };
+      } else if (len === 64) {
+        return {
+          lengthHex: 64,
+          probableTypes: ["SHA-256", "SHA3-256", "BLAKE2s-256"],
+          rankedConfidence: [
+            { type: "SHA-256", confidence: "high", reason: "Standard 256-bit SHA-2 digest" },
+            { type: "SHA3-256", confidence: "medium", reason: "Standard 256-bit Keccak/SHA-3 digest" },
+            { type: "BLAKE2s-256", confidence: "medium", reason: "256-bit BLAKE2s digest" }
+          ]
+        };
+      } else if (len === 96) {
+        return {
+          lengthHex: 96,
+          probableTypes: ["SHA-384", "SHA3-384"],
+          rankedConfidence: [
+            { type: "SHA-384", confidence: "high", reason: "384-bit SHA-2 digest" },
+            { type: "SHA3-384", confidence: "medium", reason: "384-bit SHA-3 digest" }
+          ]
+        };
+      } else if (len === 128) {
+        return {
+          lengthHex: 128,
+          probableTypes: ["SHA-512", "SHA3-512", "BLAKE2b-512"],
+          rankedConfidence: [
+            { type: "SHA-512", confidence: "high", reason: "Standard 512-bit SHA-2 digest" },
+            { type: "SHA3-512", confidence: "medium", reason: "512-bit Keccak/SHA-3 digest" },
+            { type: "BLAKE2b-512", confidence: "medium", reason: "512-bit BLAKE2b digest" }
+          ]
+        };
+      }
     }
 
     return {
       hash: h,
       lengthHex: len,
-      probableTypes: candidates.length ? candidates : ["Unknown Hash / Custom Digest"]
+      probableTypes: ["Unknown Hash / Custom Digest"]
     };
   },
 
-  // Analysis & Forensics
+  // Calibrated Shannon Entropy with alphabet detection
   entropy(input) {
     const str = String(input);
     if (!str.length) {
@@ -209,8 +348,13 @@ export const BuiltinChef = {
         shannonEntropy: 0,
         entropy: 0,
         bitsPerChar: 0,
+        alphabet: "raw",
+        maxForAlphabet: 8,
+        normalizedRatio: 0,
+        saturation: 0,
         totalBits: 0,
         length: 0,
+        verdict: "empty",
         interpretation: "Empty input"
       };
     }
@@ -223,13 +367,28 @@ export const BuiltinChef = {
       ent -= p * Math.log2(p);
     }
 
+    // Determine the representation alphabet ceiling
     const alphabet = /^[0-9a-fA-F\s]+$/.test(str)
       ? { name: "hex", max: 4 }
       : /^[A-Za-z0-9+/=_-]+$/.test(str)
       ? { name: "base64", max: 6 }
       : { name: "raw", max: 8 };
 
-    const saturation = ent / alphabet.max;
+    const normalizedRatio = +(ent / alphabet.max).toFixed(4);
+
+    let verdict = "low_entropy";
+    let interpretation = "Low information density (repetitive text or structured padding)";
+
+    if (normalizedRatio >= 0.85) {
+      verdict = "encrypted_or_compressed";
+      interpretation = `Near-maximal entropy (${(normalizedRatio * 100).toFixed(1)}% of ${alphabet.name} max ${alphabet.max}.0 bits/char): High probability of encrypted ciphertext, CSPRNG token, or compressed binary payload.`;
+    } else if (normalizedRatio >= 0.70) {
+      verdict = "high_entropy";
+      interpretation = `High entropy (${(normalizedRatio * 100).toFixed(1)}% of ${alphabet.name} max ${alphabet.max}.0 bits/char): Obfuscated script, compiled binary segment, or encoded payload.`;
+    } else if (normalizedRatio >= 0.45) {
+      verdict = "moderate_entropy";
+      interpretation = `Moderate entropy (${(normalizedRatio * 100).toFixed(1)}% of ${alphabet.name} max): Standard natural language text or source code.`;
+    }
 
     return {
       shannonEntropy: +ent.toFixed(4),
@@ -237,16 +396,12 @@ export const BuiltinChef = {
       bitsPerChar: +ent.toFixed(4),
       alphabet: alphabet.name,
       maxForAlphabet: alphabet.max,
-      saturation: +saturation.toFixed(3),
+      normalizedRatio,
+      saturation: normalizedRatio,
       totalBits: Math.round(ent * str.length),
       length: str.length,
-      interpretation: saturation > 0.95
-        ? "Near-maximal for this alphabet (random / encrypted / compressed)"
-        : saturation > 0.75
-        ? "High for this alphabet (encoded or compressed)"
-        : saturation > 0.45
-        ? "Moderate (structured text / source code)"
-        : "Low (repetitive or plain text)"
+      verdict,
+      interpretation
     };
   },
 
@@ -268,19 +423,36 @@ export const BuiltinChef = {
     }
   },
 
-  defangUrl(url) {
-    return String(url)
-      .replace(/^http:/i, "hxxp:")
-      .replace(/^https:/i, "hxxps:")
-      .replace(/\./g, "[.]");
+  // Scoped Defanging: Only hostnames, IPs, and email @ are defanged; path and query decimals preserved
+  defangUrl(input) {
+    let str = String(input);
+
+    // 1. Defang full URLs with protocol: defang protocol and host only
+    str = str.replace(/\b(https?|ftp):\/\/([^\s/?#]+)([\s/?#][^\s]*)?/gi, (_, proto, host, rest = "") => {
+      const defangedProto = proto.toLowerCase() === "https" ? "hxxps" : (proto.toLowerCase() === "http" ? "hxxp" : proto);
+      const defangedHost = host.replace(/\./g, "[.]");
+      return `${defangedProto}://${defangedHost}${rest}`;
+    });
+
+    // 2. Defang emails: change @ to [at] and host dots to [.]
+    str = str.replace(/\b([a-zA-Z0-9._%+-]+)@([a-zA-Z0-9.-]+\.[a-zA-Z]{2,})\b/g, (_, user, domain) => {
+      return `${user}[at]${domain.replace(/\./g, "[.]")}`;
+    });
+
+    // 3. Defang standalone IPv4 addresses (with strict 0-255 octets)
+    const ipv4Regex = /\b(?:(?:25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9])\.){3}(?:25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9])\b/g;
+    str = str.replace(ipv4Regex, (ip) => ip.replace(/\./g, "[.]"));
+
+    return str;
   },
 
-  refangUrl(url) {
-    return String(url)
-      .replace(/^hxxp:/i, "http:")
-      .replace(/^hxxps:/i, "https:")
+  refangUrl(input) {
+    return String(input)
+      .replace(/\bhxxps:\/\//gi, "https://")
+      .replace(/\bhxxp:\/\//gi, "http://")
       .replace(/\[\.\]/g, ".")
-      .replace(/\[dot\]/gi, ".");
+      .replace(/\[dot\]/gi, ".")
+      .replace(/\[at\]/gi, "@");
   },
 
   extractUrls(text) {
@@ -296,11 +468,163 @@ export const BuiltinChef = {
   },
 
   extractIpAddresses(text) {
-    const ipv4Regex = /\b(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\b/g;
+    const ipv4Regex = /\b(?:(?:25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9])\.){3}(?:25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9])\b/g;
     const ipv6Regex = /(?:[0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}|(?:[0-9a-fA-F]{1,4}:){1,7}:|(?:[0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}|(?:[0-9a-fA-F]{1,4}:){1,5}(?::[0-9a-fA-F]{1,4}){1,2}|(?:[0-9a-fA-F]{1,4}:){1,4}(?::[0-9a-fA-F]{1,4}){1,3}|(?:[0-9a-fA-F]{1,4}:){1,3}(?::[0-9a-fA-F]{1,4}){1,4}|(?:[0-9a-fA-F]{1,4}:){1,2}(?::[0-9a-fA-F]{1,4}){1,5}|[0-9a-fA-F]{1,4}:(?:(?::[0-9a-fA-F]{1,4}){1,6})|:(?:(?::[0-9a-fA-F]{1,4}){1,7}|:)|fe80:(?::[0-9a-fA-F]{0,4}){0,4}%[0-9a-zA-Z]{1,}|::(?:ffff(?::0{1,4}){0,1}:){0,1}(?:(?:25[0-5]|(?:2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(?:25[0-5]|(?:2[0-4]|1{0,1}[0-9]){0,1}[0-9])|(?:[0-9a-fA-F]{1,4}:){1,4}:(?:(?:25[0-5]|(?:2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(?:25[0-5]|(?:2[0-4]|1{0,1}[0-9]){0,1}[0-9])/gi;
     const ipv4Matches = String(text).match(ipv4Regex) || [];
     const ipv6Matches = String(text).match(ipv6Regex) || [];
     return [...new Set([...ipv4Matches, ...ipv6Matches])];
+  },
+
+  // Enterprise DLP Scanner with Luhn check, IBAN, SSN, PAN, E.164, AWS keys, JWTs, Private keys
+  extractDlpEntities(text) {
+    const raw = String(text);
+    const matches = [];
+
+    // Helper: Luhn checksum validator for credit cards
+    const isValidLuhn = (numStr) => {
+      const clean = numStr.replace(/\D/g, "");
+      if (clean.length < 13 || clean.length > 19) return false;
+      let sum = 0;
+      let shouldDouble = false;
+      for (let i = clean.length - 1; i >= 0; i--) {
+        let digit = parseInt(clean.charAt(i), 10);
+        if (shouldDouble) {
+          digit *= 2;
+          if (digit > 9) digit -= 9;
+        }
+        sum += digit;
+        shouldDouble = !shouldDouble;
+      }
+      return sum % 10 === 0;
+    };
+
+    // Helper: IBAN Mod-97 check
+    const isValidIban = (iban) => {
+      const clean = iban.replace(/[^A-Z0-9]/gi, "").toUpperCase();
+      if (clean.length < 15 || clean.length > 34) return false;
+      const rearranged = clean.slice(4) + clean.slice(0, 4);
+      let remainder = "";
+      for (const ch of rearranged) {
+        const val = ch >= "A" && ch <= "Z" ? (ch.charCodeAt(0) - 55).toString() : ch;
+        remainder = (BigInt(remainder + val) % 97n).toString();
+      }
+      return remainder === "1";
+    };
+
+    // 1. Credit Cards (Visa, Mastercard, Amex, Discover with Luhn verification)
+    const ccRegex = /\b(?:[0-9]{4}[ -]?[0-9]{4}[ -]?[0-9]{4}[ -]?[0-9]{1,4}|[0-9]{13,19})\b/g;
+    let m;
+    while ((m = ccRegex.exec(raw)) !== null) {
+      const digits = m[0].replace(/\D/g, "");
+      if (isValidLuhn(digits)) {
+        const preview = digits.slice(0, 4) + "-****-****-" + digits.slice(-4);
+        matches.push({ type: "credit_card", offset: m.index, length: m[0].length, preview });
+      }
+    }
+
+    // 2. US Social Security Numbers (SSN): 3-2-4 format excluding 000, 666, 900-999
+    const ssnRegex = /\b(?!000|666|9\d{2})\d{3}[ -]?(?!00)\d{2}[ -]?(?!0000)\d{4}\b/g;
+    while ((m = ssnRegex.exec(raw)) !== null) {
+      const digits = m[0].replace(/\D/g, "");
+      const preview = `***-**-${digits.slice(-4)}`;
+      matches.push({ type: "us_ssn", offset: m.index, length: m[0].length, preview });
+    }
+
+    // 3. India Permanent Account Number (PAN): 5 uppercase letters, 4 digits, 1 uppercase letter
+    const panRegex = /\b[A-Z]{5}[0-9]{4}[A-Z]\b/g;
+    while ((m = panRegex.exec(raw)) !== null) {
+      const preview = `${m[0].slice(0, 5)}****${m[0].slice(-1)}`;
+      matches.push({ type: "india_pan", offset: m.index, length: m[0].length, preview });
+    }
+
+    // 4. International Bank Account Number (IBAN)
+    const ibanRegex = /\b[A-Z]{2}\d{2}[A-Z0-9]{4}\d{7}([A-Z0-9]?){0,16}\b/gi;
+    while ((m = ibanRegex.exec(raw)) !== null) {
+      if (isValidIban(m[0])) {
+        const preview = `${m[0].slice(0, 4)}****${m[0].slice(-4)}`;
+        matches.push({ type: "iban", offset: m.index, length: m[0].length, preview });
+      }
+    }
+
+    // 5. E.164 International Phone Numbers: +[1-9]\d{6,14}
+    const phoneRegex = /\+[1-9]\d{6,14}\b/g;
+    while ((m = phoneRegex.exec(raw)) !== null) {
+      const preview = `${m[0].slice(0, 4)}****${m[0].slice(-3)}`;
+      matches.push({ type: "phone_e164", offset: m.index, length: m[0].length, preview });
+    }
+
+    // 6. Strict IPv4 (0-255 octet bounds; 999.999.999.999 will NOT match)
+    const ipv4Regex = /\b(?:(?:25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9])\.){3}(?:25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9])\b/g;
+    while ((m = ipv4Regex.exec(raw)) !== null) {
+      const parts = m[0].split(".");
+      const preview = `${parts[0]}.${parts[1]}.${parts[2]}.***`;
+      matches.push({ type: "ipv4_address", offset: m.index, length: m[0].length, preview });
+    }
+
+    // 7. IPv6 Addresses
+    const ipv6Regex = /(?:[0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}|(?:[0-9a-fA-F]{1,4}:){1,7}:|(?:[0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}|fe80:(?::[0-9a-fA-F]{0,4}){0,4}%[0-9a-zA-Z]{1,}|::(?:ffff(?::0{1,4}){0,1}:){0,1}(?:(?:25[0-5]|(?:2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(?:25[0-5]|(?:2[0-4]|1{0,1}[0-9]){0,1}[0-9])/gi;
+    while ((m = ipv6Regex.exec(raw)) !== null) {
+      const preview = `${m[0].slice(0, 9)}...[REDACTED_IPV6]`;
+      matches.push({ type: "ipv6_address", offset: m.index, length: m[0].length, preview });
+    }
+
+    // 8. AWS Access Key IDs (AKIA, ASIA, etc.)
+    const awsRegex = /\b(AKIA|ASIA|ABIA|ACCA)[0-9A-Z]{16}\b/g;
+    while ((m = awsRegex.exec(raw)) !== null) {
+      const preview = `${m[0].slice(0, 4)}****************`;
+      matches.push({ type: "aws_access_key", offset: m.index, length: m[0].length, preview });
+    }
+
+    // 9. JSON Web Tokens (JWT)
+    const jwtRegex = /\beyJ[A-Za-z0-9_-]+\.eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\b/g;
+    while ((m = jwtRegex.exec(raw)) !== null) {
+      const preview = `${m[0].slice(0, 16)}...[REDACTED_JWT]`;
+      matches.push({ type: "jwt", offset: m.index, length: m[0].length, preview });
+    }
+
+    // 10. Private Key Headers
+    const privKeyRegex = /-----BEGIN (?:RSA |EC |DSA |OPENSSH )?PRIVATE KEY-----/g;
+    while ((m = privKeyRegex.exec(raw)) !== null) {
+      matches.push({ type: "private_key_header", offset: m.index, length: m[0].length, preview: "-----BEGIN PRIVATE KEY...[REDACTED]" });
+    }
+
+    // 11. URLs
+    const urlRegex = /(?:https?|ftp|hxxps?):\/\/[^\s/$.?#].[^\s]*/gi;
+    while ((m = urlRegex.exec(raw)) !== null) {
+      matches.push({ type: "url", offset: m.index, length: m[0].length, preview: m[0].length > 40 ? m[0].slice(0, 37) + "..." : m[0] });
+    }
+
+    // 12. Email Addresses
+    const emailRegex = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/gi;
+    while ((m = emailRegex.exec(raw)) !== null) {
+      const atIdx = m[0].indexOf("@");
+      const preview = m[0].charAt(0) + "***@" + m[0].slice(atIdx + 1);
+      matches.push({ type: "email", offset: m.index, length: m[0].length, preview });
+    }
+
+    // Deduplicate matches sharing identical type & offset
+    const seen = new Set();
+    const unique = [];
+    for (const match of matches) {
+      const key = `${match.type}:${match.offset}`;
+      if (!seen.has(key)) {
+        seen.add(key);
+        unique.push(match);
+      }
+    }
+
+    unique.sort((a, b) => a.offset - b.offset);
+
+    const byType = {};
+    for (const u of unique) {
+      byType[u.type] = (byType[u.type] || 0) + 1;
+    }
+
+    return {
+      totalEntities: unique.length,
+      entityCountsByType: byType,
+      entities: unique
+    };
   },
 
   strings(input, minLength = 4) {
