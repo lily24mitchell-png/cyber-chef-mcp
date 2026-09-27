@@ -333,7 +333,7 @@ for (const sample of fuzzInputs) {
   }
 }
 assert.strictEqual(fuzzCrashes, 0, "Adversarial fuzzing must produce 0 crashes or unhandled exceptions");
-console.log(`   ✅ 500 Adversarial fuzz iterations passed with 0 crashes`);
+console.log(`   ✅ ${fuzzInputs.length} Adversarial fuzz iterations passed with 0 crashes`);
 
 console.log("\n========================================================");
 console.log("🎉 ALL 16 ENTERPRISE TEST SUITES PASSED FLAWLESSLY!");
